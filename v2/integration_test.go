@@ -120,6 +120,30 @@ func TestHTTPTriger(t *testing.T) {
 	}
 }
 
+func TestKeyValue(t *testing.T) {
+	spin := startSpin(t, "kv/testdata/key-value")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url+"/hello")
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "[\"foo\"]\n"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+}
+
 // TestBuildExamples ensures that the tinygo examples will build successfully.
 func TestBuildExamples(t *testing.T) {
 	examples, err := os.ReadDir("examples")
