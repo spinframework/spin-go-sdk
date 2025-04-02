@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
 	"go.bytecodealliance.org/cm"
 )
 

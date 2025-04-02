@@ -22,15 +22,28 @@ const (
 	ErrorError
 )
 
-var stringsError = [2]string{
+var _ErrorStrings = [2]string{
 	"success",
 	"error",
 }
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e Error) String() string {
-	return stringsError[e]
+	return _ErrorStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e Error) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *Error) UnmarshalText(text []byte) error {
+	return _ErrorUnmarshalCase(e, text)
+}
+
+var _ErrorUnmarshalCase = cm.CaseUnmarshaler[Error](_ErrorStrings[:])
 
 // Payload represents the list "fermyon:spin/redis-types#payload".
 //
@@ -69,14 +82,14 @@ func (self *RedisParameter) Binary() *Payload {
 	return cm.Case[Payload](self, 1)
 }
 
-var stringsRedisParameter = [2]string{
+var _RedisParameterStrings = [2]string{
 	"int64",
 	"binary",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v RedisParameter) String() string {
-	return stringsRedisParameter[v.Tag()]
+	return _RedisParameterStrings[v.Tag()]
 }
 
 // RedisResult represents the variant "fermyon:spin/redis-types#redis-result".
@@ -132,7 +145,7 @@ func (self *RedisResult) Binary() *Payload {
 	return cm.Case[Payload](self, 3)
 }
 
-var stringsRedisResult = [4]string{
+var _RedisResultStrings = [4]string{
 	"nil",
 	"status",
 	"int64",
@@ -141,5 +154,5 @@ var stringsRedisResult = [4]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v RedisResult) String() string {
-	return stringsRedisResult[v.Tag()]
+	return _RedisResultStrings[v.Tag()]
 }

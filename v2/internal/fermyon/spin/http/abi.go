@@ -3,7 +3,7 @@
 package http
 
 import (
-	httptypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/http-types"
+	httptypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/http-types"
 	"go.bytecodealliance.org/cm"
 	"unsafe"
 )
@@ -11,7 +11,7 @@ import (
 // ResponseShape is used for storage in variant or result types.
 type ResponseShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(httptypes.Response{})]byte
+	shape [unsafe.Sizeof(Response{})]byte
 }
 
 func lower_OptionBody(v cm.Option[httptypes.Body]) (f0 uint32, f1 *uint8, f2 uint32) {

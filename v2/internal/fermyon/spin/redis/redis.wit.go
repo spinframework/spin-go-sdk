@@ -4,7 +4,7 @@
 package redis
 
 import (
-	redistypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/redis-types"
+	redistypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/redis-types"
 	"go.bytecodealliance.org/cm"
 )
 
@@ -51,7 +51,7 @@ func Publish(address string, channel string, payload Payload) (result cm.Result[
 //	get: func(address: string, key: string) -> result<payload, error>
 //
 //go:nosplit
-func Get(address string, key string) (result cm.Result[redistypes.Payload, Payload, Error]) {
+func Get(address string, key string) (result cm.Result[Payload, Payload, Error]) {
 	address0, address1 := cm.LowerString(address)
 	key0, key1 := cm.LowerString(key)
 	wasmimport_Get((*uint8)(address0), (uint32)(address1), (*uint8)(key0), (uint32)(key1), &result)

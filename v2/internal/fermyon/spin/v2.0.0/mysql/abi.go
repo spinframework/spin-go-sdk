@@ -3,7 +3,6 @@
 package mysql
 
 import (
-	rdbmstypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/v2.0.0/rdbms-types"
 	"go.bytecodealliance.org/cm"
 	"unsafe"
 )
@@ -11,11 +10,11 @@ import (
 // ErrorShape is used for storage in variant or result types.
 type ErrorShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(rdbmstypes.Error{})]byte
+	shape [unsafe.Sizeof(Error{})]byte
 }
 
 // RowSetShape is used for storage in variant or result types.
 type RowSetShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(rdbmstypes.RowSet{})]byte
+	shape [unsafe.Sizeof(RowSet{})]byte
 }

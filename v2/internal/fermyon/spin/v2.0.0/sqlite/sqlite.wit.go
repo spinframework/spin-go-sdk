@@ -136,7 +136,7 @@ func (self *Error) IO() *string {
 	return cm.Case[string](self, 4)
 }
 
-var stringsError = [5]string{
+var _ErrorStrings = [5]string{
 	"no-such-database",
 	"access-denied",
 	"invalid-connection",
@@ -146,7 +146,7 @@ var stringsError = [5]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Error) String() string {
-	return stringsError[v.Tag()]
+	return _ErrorStrings[v.Tag()]
 }
 
 // Value represents the variant "fermyon:spin/sqlite@2.0.0#value".
@@ -213,7 +213,7 @@ func (self *Value) Null() bool {
 	return self.Tag() == 4
 }
 
-var stringsValue = [5]string{
+var _ValueStrings = [5]string{
 	"integer",
 	"real",
 	"text",
@@ -223,7 +223,7 @@ var stringsValue = [5]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Value) String() string {
-	return stringsValue[v.Tag()]
+	return _ValueStrings[v.Tag()]
 }
 
 // RowResult represents the record "fermyon:spin/sqlite@2.0.0#row-result".
@@ -234,8 +234,8 @@ func (v Value) String() string {
 //		values: list<value>,
 //	}
 type RowResult struct {
-	_      cm.HostLayout
-	Values cm.List[Value]
+	_      cm.HostLayout  `json:"-"`
+	Values cm.List[Value] `json:"values"`
 }
 
 // QueryResult represents the record "fermyon:spin/sqlite@2.0.0#query-result".
@@ -247,10 +247,10 @@ type RowResult struct {
 //		rows: list<row-result>,
 //	}
 type QueryResult struct {
-	_ cm.HostLayout
+	_ cm.HostLayout `json:"-"`
 	// The names of the columns retrieved in the query
-	Columns cm.List[string]
+	Columns cm.List[string] `json:"columns"`
 
 	// the row results each containing the values for all the columns for a given row
-	Rows cm.List[RowResult]
+	Rows cm.List[RowResult] `json:"rows"`
 }

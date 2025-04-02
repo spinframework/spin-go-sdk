@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	spinhttp "github.com/fermyon/spin-go-sdk/v2/http"
+	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
 )
 
 func init() {
@@ -15,8 +15,8 @@ func init() {
 		//TODO(rajatjindal): calling WriteHeader is required right now, need to fix before merging
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "== RESPONSE ==")
-		fmt.Fprintln(w, "Hello Fermyon!")
-		fmt.Fprintln(w, "Hello again Fermyon!")
+		fmt.Fprintln(w, "Hello spinframework!")
+		fmt.Fprintln(w, "Hello again spinframework!")
 	})
 }
 

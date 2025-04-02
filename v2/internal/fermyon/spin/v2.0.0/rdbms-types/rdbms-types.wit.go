@@ -70,7 +70,7 @@ func (self *Error) Other() *string {
 	return cm.Case[string](self, 4)
 }
 
-var stringsError = [5]string{
+var _ErrorStrings = [5]string{
 	"connection-failed",
 	"bad-parameter",
 	"query-failed",
@@ -80,7 +80,7 @@ var stringsError = [5]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Error) String() string {
-	return stringsError[v.Tag()]
+	return _ErrorStrings[v.Tag()]
 }
 
 // DbDataType represents the enum "fermyon:spin/rdbms-types@2.0.0#db-data-type".
@@ -122,7 +122,7 @@ const (
 	DbDataTypeOther
 )
 
-var stringsDbDataType = [14]string{
+var _DbDataTypeStrings = [14]string{
 	"boolean",
 	"int8",
 	"int16",
@@ -141,8 +141,21 @@ var stringsDbDataType = [14]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e DbDataType) String() string {
-	return stringsDbDataType[e]
+	return _DbDataTypeStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e DbDataType) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *DbDataType) UnmarshalText(text []byte) error {
+	return _DbDataTypeUnmarshalCase(e, text)
+}
+
+var _DbDataTypeUnmarshalCase = cm.CaseUnmarshaler[DbDataType](_DbDataTypeStrings[:])
 
 // DbValue represents the variant "fermyon:spin/rdbms-types@2.0.0#db-value".
 //
@@ -319,7 +332,7 @@ func (self *DbValue) Unsupported() bool {
 	return self.Tag() == 14
 }
 
-var stringsDbValue = [15]string{
+var _DbValueStrings = [15]string{
 	"boolean",
 	"int8",
 	"int16",
@@ -339,7 +352,7 @@ var stringsDbValue = [15]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v DbValue) String() string {
-	return stringsDbValue[v.Tag()]
+	return _DbValueStrings[v.Tag()]
 }
 
 // ParameterValue represents the variant "fermyon:spin/rdbms-types@2.0.0#parameter-value".
@@ -505,7 +518,7 @@ func (self *ParameterValue) DbNull() bool {
 	return self.Tag() == 13
 }
 
-var stringsParameterValue = [14]string{
+var _ParameterValueStrings = [14]string{
 	"boolean",
 	"int8",
 	"int16",
@@ -524,7 +537,7 @@ var stringsParameterValue = [14]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v ParameterValue) String() string {
-	return stringsParameterValue[v.Tag()]
+	return _ParameterValueStrings[v.Tag()]
 }
 
 // Column represents the record "fermyon:spin/rdbms-types@2.0.0#column".
@@ -536,9 +549,9 @@ func (v ParameterValue) String() string {
 //		data-type: db-data-type,
 //	}
 type Column struct {
-	_        cm.HostLayout
-	Name     string
-	DataType DbDataType
+	_        cm.HostLayout `json:"-"`
+	Name     string        `json:"name"`
+	DataType DbDataType    `json:"data-type"`
 }
 
 // Row represents the list "fermyon:spin/rdbms-types@2.0.0#row".
@@ -557,7 +570,7 @@ type Row cm.List[DbValue]
 //		rows: list<row>,
 //	}
 type RowSet struct {
-	_       cm.HostLayout
-	Columns cm.List[Column]
-	Rows    cm.List[Row]
+	_       cm.HostLayout   `json:"-"`
+	Columns cm.List[Column] `json:"columns"`
+	Rows    cm.List[Row]    `json:"rows"`
 }

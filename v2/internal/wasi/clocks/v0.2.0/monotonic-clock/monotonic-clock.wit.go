@@ -15,7 +15,7 @@
 package monotonicclock
 
 import (
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/io/v0.2.0/poll"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/io/v0.2.0/poll"
 	"go.bytecodealliance.org/cm"
 )
 

@@ -7,7 +7,7 @@
 package incominghandler
 
 import (
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
 )
 
 // IncomingRequest represents the exported type alias "wasi:http/incoming-handler@0.2.0#incoming-request".

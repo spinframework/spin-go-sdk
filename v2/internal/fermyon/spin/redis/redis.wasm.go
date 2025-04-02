@@ -3,7 +3,6 @@
 package redis
 
 import (
-	redistypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/redis-types"
 	"go.bytecodealliance.org/cm"
 )
 
@@ -15,7 +14,7 @@ func wasmimport_Publish(address0 *uint8, address1 uint32, channel0 *uint8, chann
 
 //go:wasmimport fermyon:spin/redis get
 //go:noescape
-func wasmimport_Get(address0 *uint8, address1 uint32, key0 *uint8, key1 uint32, result *cm.Result[redistypes.Payload, Payload, Error])
+func wasmimport_Get(address0 *uint8, address1 uint32, key0 *uint8, key1 uint32, result *cm.Result[Payload, Payload, Error])
 
 //go:wasmimport fermyon:spin/redis set
 //go:noescape

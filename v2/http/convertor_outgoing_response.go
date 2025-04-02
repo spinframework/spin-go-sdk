@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/io/v0.2.0/streams"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/io/v0.2.0/streams"
 	"go.bytecodealliance.org/cm"
 )
 

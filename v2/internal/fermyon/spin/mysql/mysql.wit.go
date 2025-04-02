@@ -4,7 +4,7 @@
 package mysql
 
 import (
-	rdbmstypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/rdbms-types"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/rdbms-types"
 	"go.bytecodealliance.org/cm"
 )
 
@@ -93,7 +93,7 @@ func (self *MysqlError) OtherError() *string {
 	return cm.Case[string](self, 5)
 }
 
-var stringsMysqlError = [6]string{
+var _MysqlErrorStrings = [6]string{
 	"success",
 	"connection-failed",
 	"bad-parameter",
@@ -104,7 +104,7 @@ var stringsMysqlError = [6]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v MysqlError) String() string {
-	return stringsMysqlError[v.Tag()]
+	return _MysqlErrorStrings[v.Tag()]
 }
 
 // Query represents the imported function "query".

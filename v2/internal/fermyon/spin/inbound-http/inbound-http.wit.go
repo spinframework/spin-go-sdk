@@ -4,7 +4,7 @@
 package inboundhttp
 
 import (
-	httptypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/http-types"
+	httptypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/http-types"
 )
 
 // Request represents the type alias "fermyon:spin/inbound-http#request".

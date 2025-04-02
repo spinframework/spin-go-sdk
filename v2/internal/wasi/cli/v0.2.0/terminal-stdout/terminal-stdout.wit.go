@@ -7,7 +7,7 @@
 package terminalstdout
 
 import (
-	terminaloutput "github.com/fermyon/spin-go-sdk/v2/internal/wasi/cli/v0.2.0/terminal-output"
+	terminaloutput "github.com/spinframework/spin-go-sdk/v2/internal/wasi/cli/v0.2.0/terminal-output"
 	"go.bytecodealliance.org/cm"
 )
 
