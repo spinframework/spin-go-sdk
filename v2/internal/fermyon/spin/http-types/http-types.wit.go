@@ -55,7 +55,7 @@ const (
 	MethodOptions
 )
 
-var stringsMethod = [7]string{
+var _MethodStrings = [7]string{
 	"get",
 	"post",
 	"put",
@@ -67,8 +67,21 @@ var stringsMethod = [7]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e Method) String() string {
-	return stringsMethod[e]
+	return _MethodStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e Method) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *Method) UnmarshalText(text []byte) error {
+	return _MethodUnmarshalCase(e, text)
+}
+
+var _MethodUnmarshalCase = cm.CaseUnmarshaler[Method](_MethodStrings[:])
 
 // Request represents the record "fermyon:spin/http-types#request".
 //
@@ -80,12 +93,12 @@ func (e Method) String() string {
 //		body: option<body>,
 //	}
 type Request struct {
-	_       cm.HostLayout
-	Method  Method
-	URI     URI
-	Headers Headers
-	Params  Params
-	Body    cm.Option[Body]
+	_       cm.HostLayout   `json:"-"`
+	Method  Method          `json:"method"`
+	URI     URI             `json:"uri"`
+	Headers Headers         `json:"headers"`
+	Params  Params          `json:"params"`
+	Body    cm.Option[Body] `json:"body"`
 }
 
 // Response represents the record "fermyon:spin/http-types#response".
@@ -96,10 +109,10 @@ type Request struct {
 //		body: option<body>,
 //	}
 type Response struct {
-	_       cm.HostLayout
-	Status  HTTPStatus
-	Headers cm.Option[Headers]
-	Body    cm.Option[Body]
+	_       cm.HostLayout      `json:"-"`
+	Status  HTTPStatus         `json:"status"`
+	Headers cm.Option[Headers] `json:"headers"`
+	Body    cm.Option[Body]    `json:"body"`
 }
 
 // HTTPError represents the enum "fermyon:spin/http-types#http-error".
@@ -123,7 +136,7 @@ const (
 	HTTPErrorTooManyRequests
 )
 
-var stringsHTTPError = [6]string{
+var _HTTPErrorStrings = [6]string{
 	"success",
 	"destination-not-allowed",
 	"invalid-url",
@@ -134,5 +147,18 @@ var stringsHTTPError = [6]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e HTTPError) String() string {
-	return stringsHTTPError[e]
+	return _HTTPErrorStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e HTTPError) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *HTTPError) UnmarshalText(text []byte) error {
+	return _HTTPErrorUnmarshalCase(e, text)
+}
+
+var _HTTPErrorUnmarshalCase = cm.CaseUnmarshaler[HTTPError](_HTTPErrorStrings[:])

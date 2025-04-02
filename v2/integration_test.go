@@ -108,7 +108,7 @@ func TestHTTPTriger(t *testing.T) {
 	}
 
 	// assert response body
-	want := "== RESPONSE ==\nHello Fermyon!\nHello again Fermyon!\n"
+	want := "== RESPONSE ==\nHello spinframework!\nHello again spinframework!\n"
 	got := string(b)
 	if want != got {
 		t.Fatalf("body is not equal: want = %q got = %q", want, got)

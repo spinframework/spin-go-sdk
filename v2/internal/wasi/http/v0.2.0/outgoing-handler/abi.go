@@ -3,7 +3,6 @@
 package outgoinghandler
 
 import (
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
 	"go.bytecodealliance.org/cm"
 	"unsafe"
 )
@@ -11,7 +10,7 @@ import (
 // ErrorCodeShape is used for storage in variant or result types.
 type ErrorCodeShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(types.ErrorCode{})]byte
+	shape [unsafe.Sizeof(ErrorCode{})]byte
 }
 
 func lower_OptionRequestOptions(v cm.Option[RequestOptions]) (f0 uint32, f1 uint32) {

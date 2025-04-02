@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	outgoinghandler "github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/outgoing-handler"
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
+	outgoinghandler "github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/outgoing-handler"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
 	"go.bytecodealliance.org/cm"
 )
 

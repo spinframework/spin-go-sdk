@@ -4,8 +4,8 @@
 package udpcreatesocket
 
 import (
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/sockets/v0.2.0/network"
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/sockets/v0.2.0/udp"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/sockets/v0.2.0/network"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/sockets/v0.2.0/udp"
 	"go.bytecodealliance.org/cm"
 )
 

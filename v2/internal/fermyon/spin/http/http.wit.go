@@ -4,7 +4,7 @@
 package http
 
 import (
-	httptypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/http-types"
+	httptypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/http-types"
 	"go.bytecodealliance.org/cm"
 )
 

@@ -70,7 +70,7 @@ func (self *Error) Other() *string {
 	return cm.Case[string](self, 3)
 }
 
-var stringsError = [4]string{
+var _ErrorStrings = [4]string{
 	"invalid-address",
 	"too-many-connections",
 	"type-error",
@@ -79,7 +79,7 @@ var stringsError = [4]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Error) String() string {
-	return stringsError[v.Tag()]
+	return _ErrorStrings[v.Tag()]
 }
 
 // Connection represents the imported resource "fermyon:spin/redis@2.0.0#connection".
@@ -290,14 +290,14 @@ func (self *RedisParameter) Binary() *Payload {
 	return cm.Case[Payload](self, 1)
 }
 
-var stringsRedisParameter = [2]string{
+var _RedisParameterStrings = [2]string{
 	"int64",
 	"binary",
 }
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v RedisParameter) String() string {
-	return stringsRedisParameter[v.Tag()]
+	return _RedisParameterStrings[v.Tag()]
 }
 
 // RedisResult represents the variant "fermyon:spin/redis@2.0.0#redis-result".
@@ -353,7 +353,7 @@ func (self *RedisResult) Binary() *Payload {
 	return cm.Case[Payload](self, 3)
 }
 
-var stringsRedisResult = [4]string{
+var _RedisResultStrings = [4]string{
 	"nil",
 	"status",
 	"int64",
@@ -362,5 +362,5 @@ var stringsRedisResult = [4]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v RedisResult) String() string {
-	return stringsRedisResult[v.Tag()]
+	return _RedisResultStrings[v.Tag()]
 }

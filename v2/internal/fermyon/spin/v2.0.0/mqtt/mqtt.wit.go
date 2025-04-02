@@ -69,7 +69,7 @@ func (self *Error) Other() *string {
 	return cm.Case[string](self, 3)
 }
 
-var stringsError = [4]string{
+var _ErrorStrings = [4]string{
 	"invalid-address",
 	"too-many-connections",
 	"connection-failed",
@@ -78,7 +78,7 @@ var stringsError = [4]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Error) String() string {
-	return stringsError[v.Tag()]
+	return _ErrorStrings[v.Tag()]
 }
 
 // Qos represents the enum "fermyon:spin/mqtt@2.0.0#qos".
@@ -98,7 +98,7 @@ const (
 	QosExactlyOnce
 )
 
-var stringsQos = [3]string{
+var _QosStrings = [3]string{
 	"at-most-once",
 	"at-least-once",
 	"exactly-once",
@@ -106,8 +106,21 @@ var stringsQos = [3]string{
 
 // String implements [fmt.Stringer], returning the enum case name of e.
 func (e Qos) String() string {
-	return stringsQos[e]
+	return _QosStrings[e]
 }
+
+// MarshalText implements [encoding.TextMarshaler].
+func (e Qos) MarshalText() ([]byte, error) {
+	return []byte(e.String()), nil
+}
+
+// UnmarshalText implements [encoding.TextUnmarshaler], unmarshaling into an enum
+// case. Returns an error if the supplied text is not one of the enum cases.
+func (e *Qos) UnmarshalText(text []byte) error {
+	return _QosUnmarshalCase(e, text)
+}
+
+var _QosUnmarshalCase = cm.CaseUnmarshaler[Qos](_QosStrings[:])
 
 // Connection represents the imported resource "fermyon:spin/mqtt@2.0.0#connection".
 //

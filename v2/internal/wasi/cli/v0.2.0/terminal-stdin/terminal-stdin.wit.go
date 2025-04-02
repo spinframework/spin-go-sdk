@@ -7,7 +7,7 @@
 package terminalstdin
 
 import (
-	terminalinput "github.com/fermyon/spin-go-sdk/v2/internal/wasi/cli/v0.2.0/terminal-input"
+	terminalinput "github.com/spinframework/spin-go-sdk/v2/internal/wasi/cli/v0.2.0/terminal-input"
 	"go.bytecodealliance.org/cm"
 )
 

@@ -4,7 +4,7 @@
 package postgres
 
 import (
-	rdbmstypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/rdbms-types"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/rdbms-types"
 	"go.bytecodealliance.org/cm"
 )
 
@@ -93,7 +93,7 @@ func (self *PgError) OtherError() *string {
 	return cm.Case[string](self, 5)
 }
 
-var stringsPgError = [6]string{
+var _PgErrorStrings = [6]string{
 	"success",
 	"connection-failed",
 	"bad-parameter",
@@ -104,7 +104,7 @@ var stringsPgError = [6]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v PgError) String() string {
-	return stringsPgError[v.Tag()]
+	return _PgErrorStrings[v.Tag()]
 }
 
 // Query represents the imported function "query".

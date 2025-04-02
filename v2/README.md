@@ -6,8 +6,24 @@ Notes:
 
 The current version of tooling used for this work:
 
-- ydnar/wasm-tools-go `a45ed842846a419a5efd02b9384e14417cc90817`
-- wasm-tools `wasm-tools 1.216.0 (28c8962b1 2024-08-22)`
-- tinygo version 0.33.0 darwin/arm64 (using go version go1.22.6 and LLVM version 18.1.2)
-- spin 2.8.0-pre0 (74d3517 2024-08-30)
+- wit-bindgen-go `wit-bindgen-go version (devel) (0e3b31e354b31b4f2d5e7d5163e29fb2ffd0b052)`
+- wasm-tools `wasm-tools 1.227.1`
+- tinygo `tinygo version 0.37.0 darwin/arm64 (using go version go1.24.1 and LLVM version 19.1.2)`
+- spin `spin 3.2.0-pre0 (3d07b0cb 2025-03-14)`
+- go `go version go1.24.1 darwin/arm64`
+- binaryen tools `binaryen-version_123`
 
+
+Regeneratin bindings:
+
+- install tooling as specified above
+- make sure they are on PATH and picking up the versions as specified above
+- cd `<root>/v2`
+- Run: `wit-bindgen-go generate -w http-trigger -p github.com/spinframework/spin-go-sdk/v2/internal --out internal ./wit`
+
+Testing:
+
+- cd `<root>/v2/examples/http`
+- Run `spin build`
+- Run `spin up`
+- In a separate terminal, run: `curl http://127.0.0.1:3000/hello`

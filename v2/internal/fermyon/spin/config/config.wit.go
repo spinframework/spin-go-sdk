@@ -57,7 +57,7 @@ func (self *Error) Other() *string {
 	return cm.Case[string](self, 3)
 }
 
-var stringsError = [4]string{
+var _ErrorStrings = [4]string{
 	"provider",
 	"invalid-key",
 	"invalid-schema",
@@ -66,7 +66,7 @@ var stringsError = [4]string{
 
 // String implements [fmt.Stringer], returning the variant case name of v.
 func (v Error) String() string {
-	return stringsError[v.Tag()]
+	return _ErrorStrings[v.Tag()]
 }
 
 // GetConfig represents the imported function "get-config".

@@ -4,7 +4,7 @@
 package mysql
 
 import (
-	rdbmstypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/v2.0.0/rdbms-types"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v2/internal/fermyon/spin/v2.0.0/rdbms-types"
 	"go.bytecodealliance.org/cm"
 )
 

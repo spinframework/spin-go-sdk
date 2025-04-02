@@ -3,7 +3,6 @@
 package postgres
 
 import (
-	rdbmstypes "github.com/fermyon/spin-go-sdk/v2/internal/fermyon/spin/rdbms-types"
 	"go.bytecodealliance.org/cm"
 	"unsafe"
 )
@@ -11,7 +10,7 @@ import (
 // RowSetShape is used for storage in variant or result types.
 type RowSetShape struct {
 	_     cm.HostLayout
-	shape [unsafe.Sizeof(rdbmstypes.RowSet{})]byte
+	shape [unsafe.Sizeof(RowSet{})]byte
 }
 
 // PgErrorShape is used for storage in variant or result types.

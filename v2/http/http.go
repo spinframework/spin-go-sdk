@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	incominghandler "github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/incoming-handler"
-	"github.com/fermyon/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
-	"github.com/fermyon/spin-go-sdk/v2/wit"
 	"github.com/julienschmidt/httprouter"
+	incominghandler "github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/incoming-handler"
+	"github.com/spinframework/spin-go-sdk/v2/internal/wasi/http/v0.2.0/types"
+	"github.com/spinframework/spin-go-sdk/v2/wit"
 )
 
 // force wit files to be shipped with sdk dependency
