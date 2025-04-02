@@ -15,17 +15,20 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
 
       - name: Setup TinyGo
         uses: acifani/setup-tinygo@v2
         with:
-          tinygo-version: '0.33.0'
+          tinygo-version: '0.37.0'
 
       - name: Setup Spin
         uses: fermyon/actions/spin/setup@v1
         with:
-          version: "v2.7.0"
+          version: "v3.2.0"
+
+      - name: Setup `wasm-tools`
+        uses: bytecodealliance/actions/wasm-tools/setup@v1
 
       - name: Run wasip2 integration tests
         run: make test-integration-wasip2
