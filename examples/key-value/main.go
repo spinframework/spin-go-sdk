@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
-	spin_http "github.com/fermyon/spin-go-sdk/http"
-	"github.com/fermyon/spin-go-sdk/kv"
+	spin_http "github.com/spinframework/spin-go-sdk/http"
+	"github.com/spinframework/spin-go-sdk/kv"
 )
 
 func init() {
