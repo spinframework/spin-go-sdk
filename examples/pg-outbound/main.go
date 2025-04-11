@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	spinhttp "github.com/fermyon/spin-go-sdk/http"
-	"github.com/fermyon/spin-go-sdk/pg"
+	spinhttp "github.com/spinframework/spin-go-sdk/http"
+	"github.com/spinframework/spin-go-sdk/pg"
 )
 
 type Pet struct {
