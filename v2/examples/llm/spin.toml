@@ -1,0 +1,19 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["Fermyon Engineering <engineering@fermyon.com>"]
+description = "Simple example using the llm sdk."
+name = "llm-example"
+version = "0.1.0"
+
+[[trigger.http]]
+route = "/..."
+component = "llm"
+
+[component.llm]
+source = "main.wasm"
+allowed_outbound_hosts = []
+ai_models = ["llama2-chat", "all-minilm-l6-v2"]
+[component.llm.build]
+command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v2)/wit --wit-world http-trigger -gc=leaking -no-debug -o main.wasm main.go"
+watch = ["**/*.go", "go.mod"]
