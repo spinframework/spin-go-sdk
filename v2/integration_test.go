@@ -42,7 +42,7 @@ type testSpin struct {
 	cmd    *exec.Cmd
 }
 
-func startSpin(t *testing.T, dir string) *testSpin {
+func startSpin(t *testing.T, dir string, extraArgs ...string) *testSpin {
 	buildApp(t, dir)
 
 	url := getFreePort(t)
@@ -50,7 +50,7 @@ func startSpin(t *testing.T, dir string) *testSpin {
 	// long timeout because... ci
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
-	cmd := exec.CommandContext(ctx, spinBinary, "up", "--listen", url)
+	cmd := exec.CommandContext(ctx, spinBinary, append([]string{"up", "--listen", url}, extraArgs...)...)
 	cmd.Dir = dir
 	stderr := new(bytes.Buffer)
 	cmd.Stderr = stderr
@@ -138,6 +138,30 @@ func TestKeyValue(t *testing.T) {
 
 	// assert response body
 	want := "[\"foo\"]\n"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+}
+
+func TestVariables(t *testing.T) {
+	spin := startSpin(t, "variables/testdata/variables")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url)
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "message:  I'm a teapot\n"
 	got := string(b)
 	if want != got {
 		t.Fatalf("body is not equal: want = %q got = %q", want, got)
