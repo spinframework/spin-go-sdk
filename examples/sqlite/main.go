@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/http"
-	"github.com/spinframework/spin-go-sdk/sqlite"
+	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
+	"github.com/spinframework/spin-go-sdk/v2/sqlite"
 )
 
 type Pet struct {
