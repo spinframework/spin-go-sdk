@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/http"
+	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
 )
 
 func init() {
