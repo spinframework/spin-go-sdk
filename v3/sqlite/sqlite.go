@@ -20,7 +20,7 @@ func Open(name string) *sql.DB {
 
 // conn represents a database connection.
 type conn struct {
-	c sqlite.Connection
+	spinConn sqlite.Connection
 }
 
 // Close the connection.
@@ -64,7 +64,7 @@ func (d *connector) Open(name string) (driver.Conn, error) {
 		return nil, toError(results.Err())
 	}
 	d.conn = &conn{
-		c: *results.OK(),
+		spinConn: *results.OK(),
 	}
 	return d.conn, nil
 }
@@ -195,7 +195,7 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	for i := range args {
 		params[i] = toWasiValue(args[i])
 	}
-	results := s.conn.c.Execute(s.query, cm.ToList(params))
+	results := s.conn.spinConn.Execute(s.query, cm.ToList(params))
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
@@ -223,7 +223,7 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 	for i := range args {
 		params[i] = toWasiValue(args[i])
 	}
-	results := s.conn.c.Execute(s.query, cm.ToList(params))
+	results := s.conn.spinConn.Execute(s.query, cm.ToList(params))
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
