@@ -82,7 +82,6 @@ type rows struct {
 	pos     int
 	len     int
 	rows    [][]any
-	closed  bool
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -97,7 +96,6 @@ func (r *rows) Close() error {
 	r.rows = nil
 	r.pos = 0
 	r.len = 0
-	r.closed = true
 	return nil
 }
 
