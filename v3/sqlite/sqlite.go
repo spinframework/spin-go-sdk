@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"io"
 
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
@@ -60,7 +61,7 @@ func (d *connector) Driver() driver.Driver {
 func (d *connector) Open(name string) (driver.Conn, error) {
 	results := sqlite.ConnectionOpen(name)
 	if results.IsErr() {
-		return nil, errors.New(results.Err().String())
+		return nil, toError(results.Err())
 	}
 	d.conn = &conn{
 		c: *results.OK(),
@@ -198,7 +199,7 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	}
 	results := s.conn.c.Execute(s.query, cm.ToList(params))
 	if results.IsErr() {
-		return nil, errors.New(results.Err().String())
+		return nil, toError(results.Err())
 	}
 
 	okresult := results.OK()
@@ -226,7 +227,7 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 	}
 	results := s.conn.c.Execute(s.query, cm.ToList(params))
 	if results.IsErr() {
-		return nil, errors.New(results.Err().String())
+		return nil, toError(results.Err())
 	}
 	return &result{}, nil
 }
@@ -244,4 +245,14 @@ func (r result) LastInsertId() (int64, error) {
 
 func (r result) RowsAffected() (int64, error) {
 	return -1, errors.New("RowsAffected is unsupported by this driver")
+}
+
+func toError(err *sqlite.Error) error {
+	if err == nil {
+		return nil
+	}
+	if err.String() == "io" {
+		return fmt.Errorf("io: %s", *err.IO())
+	}
+	return errors.New(err.String())
 }
