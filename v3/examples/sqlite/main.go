@@ -42,8 +42,6 @@ func init() {
 			pets = append(pets, &pet)
 		}
 		json.NewEncoder(w).Encode(pets)
-
-		fmt.Fprintln(w, "spinframework wasip2 sqlite!")
 	})
 }
 
