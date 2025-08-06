@@ -1,0 +1,20 @@
+spin_manifest_version = 2
+
+[application]
+name = "go-mqtt-outbound-example"
+version = "0.1.0"
+authors = ["Andrew Steurer <94206073+asteurer@users.noreply.github.com>"]
+description = "Using Spin with MQTT"
+
+[[trigger.http]]
+route = "/publish"
+component = "mqtt-outbound"
+
+[component.mqtt-outbound]
+source = "main.wasm"
+# To test anonymous MQTT authentication, remove the values from MQTT_USERNAME and MQTT_PASSWORD env variables.
+environment = { MQTT_ADDRESS = "mqtt://127.0.0.1:1883?client_id=client001", MQTT_USERNAME = "user", MQTT_PASSWORD = "password", MQTT_KEEP_ALIVE_INTERVAL = "30", MQTT_TOPIC = "telemetry" }
+allowed_outbound_hosts = ["mqtt://127.0.0.1:1883"]
+[component.mqtt-outbound.build]
+command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v3)/wit --wit-world http-trigger -gc=leaking -o main.wasm main.go"
+watch = ["**/*.go", "go.mod"]
