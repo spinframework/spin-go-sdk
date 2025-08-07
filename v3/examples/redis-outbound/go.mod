@@ -1,4 +1,4 @@
-module github.com/spinframework/spin-go-sdk/v3/examples/mqtt-outbound
+module github.com/spinframework/spin-go-sdk/v3/examples/redis-outbound
 
 go 1.24
 
