@@ -1,0 +1,20 @@
+spin_manifest_version = 2
+
+[application]
+name = "go-redis-outbound-example"
+version = "0.1.0"
+authors = ["Andrew Steurer <94206073+asteurer@users.noreply.github.com>"]
+description = "Using Spin with Redis"
+
+[[trigger.http]]
+route = "/"
+component = "redis-outbound"
+
+[component.redis-outbound]
+source = "main.wasm"
+environment = { REDIS_ENDPOINT = "redis://localhost:6379" }
+allowed_outbound_hosts = ["redis://localhost:6379"]
+
+[component.redis-outbound.build]
+command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v3)/wit --wit-world http-trigger -gc=leaking -o main.wasm main.go"
+watch = ["**/*.go", "go.mod"]
