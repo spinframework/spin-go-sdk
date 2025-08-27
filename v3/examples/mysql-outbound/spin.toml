@@ -1,0 +1,19 @@
+spin_manifest_version = 2
+
+[application]
+name = "go-mysql-outbound-example"
+version = "0.1.0"
+authors = ["Andrew Steurer <94206073+asteurer@users.noreply.github.com>"]
+description = "Using Spin with MySQL"
+
+[[trigger.http]]
+route = "/..."
+component = "mysql"
+
+[component.mysql]
+environment = { DB_URL = "mysql://spin:spin@127.0.0.1/spin_data" }
+source = "main.wasm"
+allowed_outbound_hosts = ["mysql://127.0.0.1"]
+[component.mysql.build]
+command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v3)/wit --wit-world http-trigger -gc=leaking -o main.wasm main.go"
+watch = ["**/*.go", "go.mod"]
