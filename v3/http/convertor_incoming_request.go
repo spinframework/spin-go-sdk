@@ -5,8 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/wasi/http/v0.2.0/types"
-	"go.bytecodealliance.org/cm"
+	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
 )
 
 type IncomingRequest = types.IncomingRequest
@@ -21,20 +20,20 @@ func NewHttpRequest(ir IncomingRequest) (req *http.Request, err error) {
 
 	// convert the path with query to a url
 	var url string
-	if pathWithQuery := ir.PathWithQuery(); pathWithQuery.None() {
+	if pathWithQuery := ir.PathWithQuery(); pathWithQuery.IsNone() {
 		url = ""
 	} else {
-		url = *pathWithQuery.Some()
+		url = pathWithQuery.Some()
 	}
 
 	// convert the body to a reader
 	var body io.Reader
 	if consumeResult := ir.Consume(); consumeResult.IsErr() {
-		return nil, fmt.Errorf("failed to consume incoming request %s", *consumeResult.Err())
-	} else if streamResult := consumeResult.OK().Stream(); streamResult.IsErr() {
+		return nil, fmt.Errorf("failed to consume incoming request %s", consumeResult.Err())
+	} else if streamResult := consumeResult.Ok().Stream(); streamResult.IsErr() {
 		return nil, fmt.Errorf("failed to consume incoming requests's stream %s", streamResult.Err())
 	} else {
-		body = NewReader(*streamResult.OK())
+		body = NewReader(*streamResult.Ok())
 	}
 
 	// create a new request
@@ -44,49 +43,42 @@ func NewHttpRequest(ir IncomingRequest) (req *http.Request, err error) {
 	}
 
 	// update additional fields
-	toHttpHeader(ir.Headers(), &req.Header)
+	toHttpHeader(*ir.Headers(), &req.Header)
 
 	return req, nil
 }
 
 func methodToString(m types.Method) (string, error) {
-	if m.Connect() {
+	switch m.Tag() {
+	case types.MethodConnect:
 		return "CONNECT", nil
-	}
-	if m.Delete() {
+	case types.MethodDelete:
 		return "DELETE", nil
-	}
-	if m.Get() {
+	case types.MethodGet:
 		return "GET", nil
-	}
-	if m.Head() {
+	case types.MethodHead:
 		return "HEAD", nil
-	}
-	if m.Options() {
+	case types.MethodOptions:
 		return "OPTIONS", nil
-	}
-	if m.Patch() {
+	case types.MethodPatch:
 		return "PATCH", nil
-	}
-	if m.Post() {
+	case types.MethodPost:
 		return "POST", nil
-	}
-	if m.Put() {
+	case types.MethodPut:
 		return "PUT", nil
-	}
-	if m.Trace() {
+	case types.MethodTrace:
 		return "TRACE", nil
+	case types.MethodOther:
+		return m.Other(), fmt.Errorf("unknown http method 'other'")
+	default:
+		return "", fmt.Errorf("failed to convert http method")
 	}
-	if other := m.Other(); other != nil {
-		return *other, fmt.Errorf("unknown http method 'other'")
-	}
-	return "", fmt.Errorf("failed to convert http method")
 }
 
 func toHttpHeader(src types.Fields, dest *http.Header) {
-	for _, f := range src.Entries().Slice() {
-		key := string(f.F0)
-		value := string(cm.List[uint8](f.F1).Slice())
+	for _, f := range src.Entries() {
+		key := f.F0
+		value := string(f.F1)
 		dest.Add(key, value)
 	}
 }

@@ -1,11 +1,9 @@
 package mqtt
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/mqtt"
-	"go.bytecodealliance.org/cm"
+	mqtt "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_mqtt"
 )
 
 type Connection struct {
@@ -14,19 +12,19 @@ type Connection struct {
 
 // OpenConnection initializes an MQTT connection
 func OpenConnection(address, username, password string, keepAliveIntervalInSecs uint64) (Connection, error) {
-	conn, err, isErr := mqtt.ConnectionOpen(address, username, password, keepAliveIntervalInSecs).Result()
-	if isErr {
-		return Connection{}, toError(&err)
+	result := mqtt.ConnectionOpen(address, username, password, keepAliveIntervalInSecs)
+	if result.IsErr() {
+		return Connection{}, toError(result.Err())
 	}
 
-	return Connection{conn: conn}, nil
+	return Connection{conn: *result.Ok()}, nil
 }
 
 // Publish publishes an MQTT message
 func (c *Connection) Publish(topic string, payload []byte, qos QoS) error {
-	_, err, isErr := c.conn.Publish(topic, mqtt.Payload(cm.ToList(payload)), mqtt.Qos(qos)).Result()
-	if isErr {
-		return toError(&err)
+	result := c.conn.Publish(topic, mqtt.Payload(payload), mqtt.Qos(qos))
+	if result.IsErr() {
+		return toError(result.Err())
 	}
 
 	return nil
@@ -41,18 +39,11 @@ const (
 	QosExactlyOnce = mqtt.QosExactlyOnce
 )
 
-func toError(err *mqtt.Error) error {
-	if err == nil {
-		return nil
+func toError(err mqtt.Error) error {
+	switch err.Tag() {
+	case mqtt.ErrorConnectionFailed:
+		return fmt.Errorf("connection-failed: %s", err.ConnectionFailed())
+	default:
+		return fmt.Errorf("%s", err.Other())
 	}
-
-	if err.String() == "connection-failed" {
-		return fmt.Errorf("connection-failed: %s", *err.ConnectionFailed())
-	}
-
-	if err.String() == "other" {
-		return fmt.Errorf(*err.Other())
-	}
-
-	return errors.New(err.String())
 }

@@ -15,5 +15,5 @@ environment = { DB_URL = "mysql://spin:spin@127.0.0.1/spin_data" }
 source = "main.wasm"
 allowed_outbound_hosts = ["mysql://127.0.0.1"]
 [component.mysql.build]
-command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v3)/wit --wit-world http-trigger -gc=leaking -o main.wasm main.go"
+command = "componentize-go --world http-trigger --wit-path ../../wit componentize"
 watch = ["**/*.go", "go.mod"]

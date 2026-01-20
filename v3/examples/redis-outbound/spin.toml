@@ -16,5 +16,5 @@ environment = { REDIS_ADDRESS = "redis://localhost:6379", REDIS_CHANNEL = "messa
 allowed_outbound_hosts = ["redis://localhost:6379"]
 
 [component.redis-outbound.build]
-command = "tinygo build -target=wasip2 --wit-package $(go list -mod=readonly -m -f '{{.Dir}}' github.com/spinframework/spin-go-sdk/v3)/wit --wit-world http-trigger -gc=leaking -o main.wasm main.go"
+command = "componentize-go --world http-trigger --wit-path ../../wit componentize"
 watch = ["**/*.go", "go.mod"]

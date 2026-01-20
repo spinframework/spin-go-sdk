@@ -8,8 +8,9 @@ import (
 	"os"
 
 	"github.com/julienschmidt/httprouter"
-	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/wasi/http/v0.2.0/incoming-handler"
-	"github.com/spinframework/spin-go-sdk/v3/internal/wasi/http/v0.2.0/types"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/export_wasi_http_0_2_0_incoming_handler"
+	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
+	_ "github.com/spinframework/spin-go-sdk/v3/internal/wit_exports"
 	"github.com/spinframework/spin-go-sdk/v3/wit"
 )
 
@@ -78,9 +79,9 @@ func Handle(fn func(http.ResponseWriter, *http.Request)) {
 	handler = fn
 }
 
-var wasiHandle = func(request types.IncomingRequest, responseOut types.ResponseOutparam) {
+var wasiHandle = func(request *types.IncomingRequest, responseOut *types.ResponseOutparam) {
 	// convert the incoming request to go's net/http type
-	httpReq, err := NewHttpRequest(request)
+	httpReq, err := NewHttpRequest(*request)
 	if err != nil {
 		//TODO(rajatjindal): return internal error from here
 		fmt.Printf("failed to convert wasi/http/types.IncomingRequest to http.Request: %s\n", err)
@@ -88,7 +89,7 @@ var wasiHandle = func(request types.IncomingRequest, responseOut types.ResponseO
 	}
 
 	// convert the response outparam to go's net/http type
-	httpRes := NewHttpResponseWriter(responseOut)
+	httpRes := NewHttpResponseWriter(*responseOut)
 
 	// run the user's handler
 	handler(httpRes, httpReq)

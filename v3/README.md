@@ -1,29 +1,24 @@
-WIP
+# Overview
+The `wasip2` implementation of the Spinframework Go SDK.
 
-spin-go-sdk with wasip2 support
+## Generating the WIT bindings
+Whenever WIT files are changed/added to the `v3/wit` directory, the bindings  in `v3/wit_component` need to be regenerated.
 
-Notes:
+### Prerequisites
+- [**componentize-go**](https://github.com/asteurer/componentize-go) - Latest version
 
-The current version of tooling used for this work:
+### Run
+```sh
+cd v3
 
-- wit-bindgen-go `wit-bindgen-go version (devel) (0e3b31e354b31b4f2d5e7d5163e29fb2ffd0b052)`
-- wasm-tools `wasm-tools 1.227.1`
-- tinygo `tinygo version 0.37.0 darwin/arm64 (using go version go1.24.1 and LLVM version 19.1.2)`
-- spin `spin 3.2.0-pre0 (3d07b0cb 2025-03-14)`
-- go `go version go1.24.1 darwin/arm64`
-- binaryen tools `binaryen-version_123`
+# Delete all non-handwritten code
+find $(pwd)/internal/ \
+    -mindepth 1 \
+    -maxdepth 1 \
+    -type d \
+    ! -name 'db' \
+    ! -name 'export_wasi_http_0_2_0_incoming_handler' \
+    -exec rm -rf {} +
 
-
-Regeneratin bindings:
-
-- install tooling as specified above
-- make sure they are on PATH and picking up the versions as specified above
-- cd `<root>/v3`
-- Run: `wit-bindgen-go generate -w http-trigger -p github.com/spinframework/spin-go-sdk/v3/internal --out internal ./wit`
-
-Testing:
-
-- cd `<root>/v3/examples/http`
-- Run `spin build`
-- Run `spin up`
-- In a separate terminal, run: `curl http://127.0.0.1:3000/hello`
+componentize-go -w http-trigger -d ./wit bindings --format -o internal --pkg-name github.com/spinframework/spin-go-sdk/v3/internal
+```

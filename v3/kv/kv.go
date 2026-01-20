@@ -3,8 +3,7 @@ package kv
 import (
 	"fmt"
 
-	keyvalue "github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/key-value"
-	"go.bytecodealliance.org/cm"
+	keyvalue "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_key_value"
 )
 
 type Store struct {
@@ -15,11 +14,11 @@ type Store struct {
 func Open(label string) (*Store, error) {
 	result := keyvalue.StoreOpen(label)
 	if result.IsErr() {
-		return nil, errorVariantToError(*result.Err())
+		return nil, errorVariantToError(result.Err())
 	}
 
 	return &Store{
-		store: result.OK(),
+		store: result.Ok(),
 	}, nil
 }
 
@@ -32,9 +31,9 @@ func OpenDefault() (*Store, error) {
 
 // Set the key/value pair in store
 func (s *Store) Set(key string, value []byte) error {
-	result := s.store.Set(key, cm.ToList(value))
+	result := s.store.Set(key, value)
 	if result.IsErr() {
-		return errorVariantToError(*result.Err())
+		return errorVariantToError(result.Err())
 	}
 
 	return nil
@@ -44,22 +43,22 @@ func (s *Store) Set(key string, value []byte) error {
 func (s *Store) Get(key string) ([]byte, error) {
 	result := s.store.Get(key)
 	if result.IsErr() {
-		return nil, errorVariantToError(*result.Err())
+		return nil, errorVariantToError(result.Err())
 	}
 
-	value := result.OK()
-	if value.None() {
+	value := result.Ok()
+	if value.IsNone() {
 		return []byte(""), nil
 	}
 
-	return value.Some().Slice(), nil
+	return value.Some(), nil
 }
 
 // Delete the given key/value from the store
 func (s *Store) Delete(key string) error {
 	result := s.store.Delete(key)
 	if result.IsErr() {
-		return errorVariantToError(*result.Err())
+		return errorVariantToError(result.Err())
 	}
 
 	return nil
@@ -69,35 +68,33 @@ func (s *Store) Delete(key string) error {
 func (s *Store) Exists(key string) (bool, error) {
 	result := s.store.Exists(key)
 	if result.IsErr() {
-		return false, errorVariantToError(*result.Err())
+		return false, errorVariantToError(result.Err())
 	}
 
-	return *result.OK(), nil
+	return result.Ok(), nil
 }
 
 // GetKets returns all the keys from the store
 func (s *Store) GetKeys() ([]string, error) {
 	result := s.store.GetKeys()
 	if result.IsErr() {
-		return nil, errorVariantToError(*result.Err())
+		return nil, errorVariantToError(result.Err())
 	}
 
-	return result.OK().Slice(), nil
+	return result.Ok(), nil
 }
 
 func errorVariantToError(code keyvalue.Error) error {
-	switch code {
-	case keyvalue.ErrorAccessDenied():
+	switch code.Tag() {
+	case keyvalue.ErrorAccessDenied:
 		return fmt.Errorf("access denied")
-	case keyvalue.ErrorNoSuchStore():
+	case keyvalue.ErrorNoSuchStore:
 		return fmt.Errorf("no such store")
-	case keyvalue.ErrorStoreTableFull():
+	case keyvalue.ErrorStoreTableFull:
 		return fmt.Errorf("store table full")
+	case keyvalue.ErrorOther:
+		return fmt.Errorf("%v", code.Other())
 	default:
-		if code.Other() != nil {
-			return fmt.Errorf(*code.Other())
-		}
-
 		return fmt.Errorf("no error provided by host implementation")
 	}
 }
