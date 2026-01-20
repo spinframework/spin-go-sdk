@@ -3,30 +3,30 @@ package http
 import (
 	"net/http"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/wasi/http/v0.2.0/types"
-	"go.bytecodealliance.org/cm"
+	wit "github.com/bytecodealliance/wit-bindgen/wit_types"
+	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
 )
 
 // convert the IncomingRequest to http.Request
 func NewOutgoingHttpRequest(req *http.Request) (types.OutgoingRequest, error) {
-	headers := types.NewFields()
-	toWasiHeader(req.Header, headers)
+	headers := types.MakeFields()
+	toWasiHeader(req.Header, *headers)
 
-	or := types.NewOutgoingRequest(headers)
-	or.SetAuthority(cm.Some(req.Host))
+	or := types.MakeOutgoingRequest(headers)
+	or.SetAuthority(wit.Some(req.Host))
 	or.SetMethod(toWasiMethod(req.Method))
-	or.SetPathWithQuery(cm.Some(req.URL.RawPath))
+	or.SetPathWithQuery(wit.Some(req.URL.RawPath))
 
 	switch req.URL.Scheme {
 	case "http":
-		or.SetScheme(cm.Some(types.SchemeHTTP()))
+		or.SetScheme(wit.Some(types.MakeSchemeHttp()))
 	case "https":
-		or.SetScheme(cm.Some(types.SchemeHTTPS()))
+		or.SetScheme(wit.Some(types.MakeSchemeHttps()))
 	default:
-		or.SetScheme(cm.Some(types.SchemeOther(req.URL.Scheme)))
+		or.SetScheme(wit.Some(types.MakeSchemeOther(req.URL.Scheme)))
 	}
 
-	return or, nil
+	return *or, nil
 }
 
 func toWasiHeader(src http.Header, dest types.Fields) {
@@ -35,35 +35,36 @@ func toWasiHeader(src http.Header, dest types.Fields) {
 		fieldVals := []types.FieldValue{}
 
 		for _, val := range v {
-			fieldVals = append(fieldVals, types.FieldValue(cm.ToList([]uint8(val))))
+			fieldVals = append(fieldVals, types.FieldValue(val))
 		}
 
-		//TODO(rjindal): check error
-		_ = dest.Set(key, cm.ToList(fieldVals))
+		if result := dest.Set(key, fieldVals); result.IsErr() {
+			panic("failed to set WASI headers")
+		}
 	}
 }
 
 func toWasiMethod(s string) types.Method {
 	switch s {
 	case http.MethodConnect:
-		return types.MethodConnect()
+		return types.MakeMethodConnect()
 	case http.MethodDelete:
-		return types.MethodDelete()
+		return types.MakeMethodDelete()
 	case http.MethodGet:
-		return types.MethodGet()
+		return types.MakeMethodGet()
 	case http.MethodHead:
-		return types.MethodHead()
+		return types.MakeMethodHead()
 	case http.MethodOptions:
-		return types.MethodOptions()
+		return types.MakeMethodOptions()
 	case http.MethodPatch:
-		return types.MethodPatch()
+		return types.MakeMethodPatch()
 	case http.MethodPost:
-		return types.MethodPost()
+		return types.MakeMethodPost()
 	case http.MethodPut:
-		return types.MethodPut()
+		return types.MakeMethodPut()
 	case http.MethodTrace:
-		return types.MethodTrace()
+		return types.MakeMethodTrace()
 	default:
-		return types.MethodOther(s)
+		return types.MakeMethodOther(s)
 	}
 }

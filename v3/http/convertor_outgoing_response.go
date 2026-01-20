@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/wasi/http/v0.2.0/types"
-	"github.com/spinframework/spin-go-sdk/v3/internal/wasi/io/v0.2.0/streams"
-	"go.bytecodealliance.org/cm"
+	wit "github.com/bytecodealliance/wit-bindgen/wit_types"
+	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
+	streams "github.com/spinframework/spin-go-sdk/v3/internal/wasi_io_0_2_0_streams"
 )
 
 var _ http.ResponseWriter = &responseOutparamWriter{}
@@ -50,16 +50,17 @@ func (row *responseOutparamWriter) Write(buf []byte) (int, error) {
 		if bodyResult.IsErr() {
 			return 0, fmt.Errorf("failed to acquire resource handle to response body: %s", bodyResult.Err())
 		}
-		row.body = bodyResult.OK()
+		row.body = bodyResult.Ok()
 
 		writeResult := row.body.Write()
 		if writeResult.IsErr() {
 			return 0, fmt.Errorf("failed to acquire resource handle for response body's stream: %s", writeResult.Err())
 		}
-		row.stream = writeResult.OK()
+		row.stream = writeResult.Ok()
 
-		result := cm.OK[cm.Result[types.ErrorCodeShape, types.OutgoingResponse, types.ErrorCode]](row.response)
-		types.ResponseOutparamSet(row.outparam, result)
+		result := wit.Ok[*types.OutgoingResponse, types.ErrorCode](&row.response)
+
+		types.ResponseOutparamSet(&row.outparam, result)
 	}
 
 	// //TODO: determine if we need to do these to fulfill the ResponseWriter contract
@@ -67,10 +68,10 @@ func (row *responseOutparamWriter) Write(buf []byte) (int, error) {
 	// // call DetectContentType if headers doesn't contain content-type yet
 	// // if total data is under "a few" KB and there are no flush calls, Content-Length is added automatically
 
-	contents := cm.ToList(buf)
+	contents := buf
 	writeResult := row.stream.Write(contents)
 	if writeResult.IsErr() {
-		if writeResult.Err().Closed() {
+		if writeResult.Err().Tag() == streams.StreamErrorClosed {
 			return 0, fmt.Errorf("failed to write to response body's stream: closed")
 		}
 
@@ -80,7 +81,7 @@ func (row *responseOutparamWriter) Write(buf []byte) (int, error) {
 
 	row.stream.BlockingFlush()
 
-	return int(contents.Len()), nil
+	return len(contents), nil
 }
 
 func (row *responseOutparamWriter) WriteHeader(statusCode int) {
@@ -93,11 +94,11 @@ func (row *responseOutparamWriter) reconcileHeaders() error {
 		// convert each value distincly
 		fieldVals := []types.FieldValue{}
 		for _, val := range vals {
-			fieldVals = append(fieldVals, types.FieldValue(cm.ToList([]uint8(val))))
+			fieldVals = append(fieldVals, types.FieldValue(val))
 		}
 
-		if result := row.wasiHeaders.Set(types.FieldKey(key), cm.ToList(fieldVals)); result.IsErr() {
-			switch *result.Err() {
+		if result := row.wasiHeaders.Set(types.FieldKey(key), fieldVals); result.IsErr() {
+			switch result.Err().Tag() {
 			case types.HeaderErrorInvalidSyntax:
 				return fmt.Errorf("failed to set header %s to [%s]: invalid syntax", key, strings.Join(vals, ","))
 			case types.HeaderErrorForbidden:
@@ -120,7 +121,7 @@ func NewHttpResponseWriter(out types.ResponseOutparam) *responseOutparamWriter {
 	row := &responseOutparamWriter{
 		outparam:    out,
 		httpHeaders: http.Header{},
-		wasiHeaders: types.NewFields(),
+		wasiHeaders: *types.MakeFields(),
 	}
 
 	return row
@@ -139,7 +140,7 @@ func (row *responseOutparamWriter) reconcile() error {
 	}
 
 	// setting any headers after this will cause panic
-	row.response = types.NewOutgoingResponse(row.wasiHeaders)
+	row.response = *types.MakeOutgoingResponse(&row.wasiHeaders)
 
 	// set status code. default to 200
 	if row.statuscode == 0 {

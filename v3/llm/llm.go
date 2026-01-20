@@ -3,8 +3,8 @@ package llm
 import (
 	"fmt"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/llm"
-	"go.bytecodealliance.org/cm"
+	"github.com/bytecodealliance/wit-bindgen/wit_types"
+	llm "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_llm"
 )
 
 // The model use for inferencing
@@ -46,7 +46,9 @@ type InferencingResult struct {
 
 // Usage information related to the inferencing result
 type InferencingUsage struct {
-	_ cm.HostLayout `json:"-"`
+	// TODO: It's not clear whether this is important.
+	// _ cm.HostLayout `json:"-"`
+
 	// Number of tokens in the prompt
 	PromptTokenCount uint32 `json:"prompt-token-count"`
 
@@ -75,9 +77,9 @@ type EmbeddingsUsage struct {
 // Infer performs inferencing using the provided model and prompt with the
 // given optional parameters.
 func Infer(model string, prompt string, params *InferencingParams) (InferencingResult, error) {
-	iparams := cm.None[llm.InferencingParams]()
+	iparams := wit_types.None[llm.InferencingParams]()
 	if params != nil {
-		iparams = cm.Some(llm.InferencingParams{
+		iparams = wit_types.Some(llm.InferencingParams{
 			MaxTokens:                    params.MaxTokens,
 			RepeatPenalty:                params.RepeatPenalty,
 			RepeatPenaltyLastNTokenCount: params.RepeatPenaltyLastNTokenCount,
@@ -89,46 +91,46 @@ func Infer(model string, prompt string, params *InferencingParams) (InferencingR
 
 	result := llm.Infer(llm.InferencingModel(model), prompt, iparams)
 	if result.IsErr() {
-		return InferencingResult{}, errorVariantToError(*result.Err())
+		return InferencingResult{}, errorVariantToError(result.Err())
 	}
 
 	return InferencingResult{
-		Text: result.OK().Text,
+		Text: result.Ok().Text,
 		Usage: InferencingUsage{
-			PromptTokenCount:    result.OK().Usage.PromptTokenCount,
-			GeneratedTokenCount: result.OK().Usage.GeneratedTokenCount,
+			PromptTokenCount:    result.Ok().Usage.PromptTokenCount,
+			GeneratedTokenCount: result.Ok().Usage.GeneratedTokenCount,
 		},
 	}, nil
 }
 
 // GenerateEmbeddings generates the embeddings for the supplied list of text.
 func GenerateEmbeddings(model EmbeddingModel, text []string) (*EmbeddingsResult, error) {
-	result := llm.GenerateEmbeddings(llm.EmbeddingModel(model), cm.ToList(text))
+	result := llm.GenerateEmbeddings(llm.EmbeddingModel(model), text)
 	if result.IsErr() {
-		return &EmbeddingsResult{}, errorVariantToError(*result.Err())
+		return &EmbeddingsResult{}, errorVariantToError(result.Err())
 	}
 
 	embeddings := [][]float32{}
-	for _, l := range result.OK().Embeddings.Slice() {
-		embeddings = append(embeddings, l.Slice())
+	for _, l := range result.Ok().Embeddings {
+		embeddings = append(embeddings, l)
 	}
 
 	return &EmbeddingsResult{
 		Embeddings: embeddings,
 		Usage: &EmbeddingsUsage{
-			PromptTokenCount: int(result.OK().Usage.PromptTokenCount),
+			PromptTokenCount: int(result.Ok().Usage.PromptTokenCount),
 		},
 	}, nil
 }
 
 func errorVariantToError(err llm.Error) error {
-	switch {
-	case llm.ErrorModelNotSupported() == err:
+	switch err.Tag() {
+	case llm.ErrorModelNotSupported:
 		return fmt.Errorf("model not supported")
-	case err.RuntimeError() != nil:
-		return fmt.Errorf("runtime error %s", *err.RuntimeError())
-	case err.InvalidInput() != nil:
-		return fmt.Errorf("invalid input %s", *err.InvalidInput())
+	case llm.ErrorRuntimeError:
+		return fmt.Errorf("runtime error %s", err.RuntimeError())
+	case llm.ErrorInvalidInput:
+		return fmt.Errorf("invalid input %s", err.InvalidInput())
 	default:
 		return fmt.Errorf("no error provided by host implementation")
 	}

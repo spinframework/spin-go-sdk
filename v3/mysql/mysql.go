@@ -9,9 +9,8 @@ import (
 	"reflect"
 
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	"github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/mysql"
-	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/rdbms-types"
-	"go.bytecodealliance.org/cm"
+	mysql "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_mysql"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_rdbms_types"
 )
 
 // Open returns a new connection to the database.
@@ -56,7 +55,7 @@ func (d *connector) Open(name string) (driver.Conn, error) {
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
-	d.conn = &conn{spinConn: *results.OK()}
+	d.conn = &conn{spinConn: *results.Ok()}
 	return d.conn, nil
 }
 
@@ -156,9 +155,9 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 		wasiParams[i] = toWasiParameterValue(v)
 	}
 
-	_, err, isErr := s.conn.spinConn.Execute(s.query, cm.ToList(wasiParams)).Result()
-	if isErr {
-		return &result{}, toError(&err)
+	queryResult := s.conn.spinConn.Execute(s.query, wasiParams)
+	if queryResult.IsErr() {
+		return &result{}, toError(queryResult.Err())
 	}
 
 	return &result{}, nil
@@ -171,18 +170,18 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 		wasiParams[i] = toWasiParameterValue(v)
 	}
 
-	results, err, isErr := s.conn.spinConn.Query(s.query, cm.ToList(wasiParams)).Result()
-	if isErr {
-		return nil, toError(&err)
+	results := s.conn.spinConn.Query(s.query, wasiParams)
+	if results.IsErr() {
+		return nil, toError(results.Err())
 	}
 
-	rowLen := results.Rows.Len()
+	rowLen := len(results.Ok().Rows)
 	allRows := make([][]any, rowLen)
-	for rowNum, row := range results.Rows.Slice() {
-		allRows[rowNum] = toRow(row.Slice())
+	for rowNum, row := range results.Ok().Rows {
+		allRows[rowNum] = toRow(row)
 	}
 
-	cols := results.Columns.Slice()
+	cols := results.Ok().Columns
 	colNames := make([]string, len(cols))
 	colTypes := make([]uint8, len(cols))
 	for i, c := range cols {
@@ -202,91 +201,87 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 func toWasiParameterValue(x any) mysql.ParameterValue {
 	switch v := x.(type) {
 	case bool:
-		return rdbmstypes.ParameterValueBoolean(v)
+		return rdbmstypes.MakeParameterValueBoolean(v)
 	case int8:
-		return rdbmstypes.ParameterValueInt8(v)
+		return rdbmstypes.MakeParameterValueInt8(v)
 	case int16:
-		return rdbmstypes.ParameterValueInt16(v)
+		return rdbmstypes.MakeParameterValueInt16(v)
 	case int32:
-		return rdbmstypes.ParameterValueInt32(v)
+		return rdbmstypes.MakeParameterValueInt32(v)
 	case int64:
-		return rdbmstypes.ParameterValueInt64(v)
+		return rdbmstypes.MakeParameterValueInt64(v)
 	case int:
-		return rdbmstypes.ParameterValueInt64(int64(v))
+		return rdbmstypes.MakeParameterValueInt64(int64(v))
 	case uint8:
-		return rdbmstypes.ParameterValueUint8(v)
+		return rdbmstypes.MakeParameterValueUint8(v)
 	case uint16:
-		return rdbmstypes.ParameterValueUint16(v)
+		return rdbmstypes.MakeParameterValueUint16(v)
 	case uint32:
-		return rdbmstypes.ParameterValueUint32(v)
+		return rdbmstypes.MakeParameterValueUint32(v)
 	case uint64:
-		return rdbmstypes.ParameterValueUint64(v)
+		return rdbmstypes.MakeParameterValueUint64(v)
 	case float32:
-		return rdbmstypes.ParameterValueFloating32(v)
+		return rdbmstypes.MakeParameterValueFloating32(v)
 	case float64:
-		return rdbmstypes.ParameterValueFloating64(v)
+		return rdbmstypes.MakeParameterValueFloating64(v)
 	case string:
-		return rdbmstypes.ParameterValueStr(v)
+		return rdbmstypes.MakeParameterValueStr(v)
 	case []byte:
-		return rdbmstypes.ParameterValueBinary(cm.ToList([]uint8(v)))
+		return rdbmstypes.MakeParameterValueBinary(v)
 	case nil:
-		return rdbmstypes.ParameterValueDbNull()
+		return rdbmstypes.MakeParameterValueDbNull()
 	default:
 		panic("unknown value type")
 	}
 }
 
-func toError(err *mysql.Error) error {
-	if err == nil {
-		return nil
-	}
-
-	switch err.String() {
-	case "bad-parameter":
-		return errors.New(*err.BadParameter())
-	case "connection-failed":
-		return errors.New(*err.ConnectionFailed())
-	case "query-failed":
-		return errors.New(*err.QueryFailed())
-	case "value-conversion-failed":
-		return errors.New(*err.ValueConversionFailed())
+func toError(err mysql.Error) error {
+	switch err.Tag() {
+	case rdbmstypes.ErrorBadParameter:
+		return errors.New(err.BadParameter())
+	case rdbmstypes.ErrorConnectionFailed:
+		return errors.New(err.ConnectionFailed())
+	case rdbmstypes.ErrorQueryFailed:
+		return errors.New(err.QueryFailed())
+	case rdbmstypes.ErrorValueConversionFailed:
+		return errors.New(err.ValueConversionFailed())
 	default:
 		// TODO: not sure if using "Other" as the default is appropriate
-		return errors.New(*err.Other())
+		return errors.New(err.Other())
 	}
 }
 
 func toRow(row []rdbmstypes.DbValue) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
-		switch v.String() {
-		case "boolean":
-			result[i] = *v.Boolean()
-		case "int8":
-			result[i] = *v.Int8()
-		case "int16":
-			result[i] = *v.Int16()
-		case "int32":
-			result[i] = *v.Int32()
-		case "int64":
-			result[i] = *v.Int64()
-		case "uint8":
-			result[i] = *v.Uint8()
-		case "uint16":
-			result[i] = *v.Uint16()
-		case "uint32":
-			result[i] = *v.Uint32()
-		case "uint64":
-			result[i] = *v.Uint64()
-		case "floating32":
-			result[i] = *v.Floating32()
-		case "floating64":
-			result[i] = *v.Floating64()
-		case "str":
-			result[i] = *v.Str()
-		case "binary":
-			result[i] = *v.Binary()
-		case "db-null":
+		switch v.Tag() {
+		case rdbmstypes.DbValueBoolean:
+			result[i] = v.Boolean()
+		case rdbmstypes.DbValueInt8:
+			result[i] = v.Int8()
+		case rdbmstypes.DbValueInt16:
+			result[i] = v.Int16()
+		case rdbmstypes.DbValueInt32:
+			result[i] = v.Int32()
+		case rdbmstypes.DbValueInt64:
+			result[i] = v.Int64()
+		case rdbmstypes.DbValueUint8:
+			result[i] = v.Uint8()
+		case rdbmstypes.DbValueUint16:
+			result[i] = v.Uint16()
+		case rdbmstypes.DbValueUint32:
+			result[i] = v.Uint32()
+		case rdbmstypes.DbValueUint64:
+			result[i] = v.Uint64()
+		case rdbmstypes.DbValueFloating32:
+			result[i] = v.Floating32()
+		case rdbmstypes.DbValueFloating64:
+			result[i] = v.Floating64()
+		case rdbmstypes.DbValueStr:
+			result[i] = v.Str()
+		case rdbmstypes.DbValueBinary:
+			result[i] = v.Binary()
+		case rdbmstypes.DbValueDbNull:
 			result[i] = nil
 		default:
 			panic("unknown value type")

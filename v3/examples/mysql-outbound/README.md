@@ -1,9 +1,10 @@
 # Requirements
-- Latest version of [TinyGo](https://tinygo.org/getting-started/)
-- Latest version of [Docker](https://docs.docker.com/get-started/get-docker/)
+- [**go**](https://go.dev/dl/) - v1.25+
+- [**spin**](https://github.com/spinframework/spin) - Latest version
+- [**docker**](https://docs.docker.com/get-started/get-docker/) - Latest version
+- [**componentize-go**](https://github.com/asteurer/componentize-go) - Latest version
 
 # Usage
-
 In a terminal window, use the below command to run MySQL:
 ```sh
 docker compose up -d

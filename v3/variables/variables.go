@@ -3,7 +3,7 @@ package variables
 import (
 	"fmt"
 
-	"github.com/spinframework/spin-go-sdk/v3/internal/fermyon/spin/v2.0.0/variables"
+	variables "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_variables"
 )
 
 // Get an application variable value for the current component.
@@ -12,25 +12,23 @@ import (
 func Get(key string) (string, error) {
 	result := variables.Get(key)
 	if result.IsErr() {
-		return "", errorVariantToError(*result.Err())
+		return "", errorVariantToError(result.Err())
 	}
 
-	return *result.OK(), nil
+	return result.Ok(), nil
 }
 
 func errorVariantToError(err variables.Error) error {
-	switch {
-	case err.InvalidName() != nil:
-		return fmt.Errorf(*err.InvalidName())
-	case err.Provider() != nil:
-		return fmt.Errorf(*err.Provider())
-	case err.Undefined() != nil:
-		return fmt.Errorf(*err.Undefined())
+	switch err.Tag() {
+	case variables.ErrorInvalidName:
+		return fmt.Errorf("%v", err.InvalidName())
+	case variables.ErrorProvider:
+		return fmt.Errorf("%v", err.Provider())
+	case variables.ErrorUndefined:
+		return fmt.Errorf("%v", err.Undefined())
+	case variables.ErrorOther:
+		return fmt.Errorf("%v", err.Other())
 	default:
-		if err.Other() != nil {
-			return fmt.Errorf(*err.Other())
-		}
-
 		return fmt.Errorf("no error provided by host implementation")
 	}
 }

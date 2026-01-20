@@ -91,8 +91,8 @@ func buildApp(t *testing.T, dir string) {
 	}
 }
 
-func TestHTTPTriger(t *testing.T) {
-	spin := startSpin(t, "http/testdata/http-tinygo")
+func TestHTTPTrigger(t *testing.T) {
+	spin := startSpin(t, "http/testdata/http")
 	defer spin.cancel()
 
 	resp := retryGet(t, spin.url+"/hello")
@@ -175,7 +175,6 @@ func TestBuildExamples(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, example := range examples {
-		example := example
 		t.Run(example.Name(), func(t *testing.T) {
 			t.Parallel()
 			buildApp(t, filepath.Join("examples", example.Name()))
