@@ -5,7 +5,7 @@ The `wasip2` implementation of the Spinframework Go SDK.
 Whenever WIT files are changed/added to the `v3/wit` directory, the bindings  in `v3/wit_component` need to be regenerated.
 
 ### Prerequisites
-- [**componentize-go**](https://github.com/asteurer/componentize-go) - Latest version
+- [**componentize-go**](https://github.com/bytecodealliance/componentize-go) - Latest version
 
 ### Run
 ```sh
