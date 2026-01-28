@@ -20,7 +20,7 @@ jobs:
 
       - name: Setup componentize-go
         run: |
-          curl -LO https://github.com/asteurer/componentize-go/releases/download/v0.2.0/componentize-go-linux-amd64.tar.gz
+          curl -LO https://github.com/bytecodealliance/componentize-go/releases/download/v0.2.0/componentize-go-linux-amd64.tar.gz
           echo "27fc32998f023a88a6a1f44524631a705163f23ce2a02fc14987726897360027  componentize-go-linux-amd64.tar.gz" | sha256sum --check
           tar -xf componentize-go-linux-amd64.tar.gz
           chmod +x componentize-go
