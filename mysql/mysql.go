@@ -115,8 +115,9 @@ type rows struct {
 	columns    []string
 	columnType []uint8
 	pos        int
-	numRows    int
+	len        int
 	rows       [][]any
+	closed     bool
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -132,7 +133,8 @@ func (r *rows) Columns() []string {
 func (r *rows) Close() error {
 	r.rows = nil
 	r.pos = 0
-	r.numRows = 0
+	r.len = 0
+	r.closed = true
 	return nil
 }
 
@@ -151,7 +153,7 @@ func (r *rows) Next(dest []driver.Value) error {
 // HasNextResultSet is called at the end of the current result set and
 // reports whether there is another result set after the current one.
 func (r *rows) HasNextResultSet() bool {
-	return r.pos < r.numRows
+	return r.pos < r.len
 }
 
 // NextResultSet advances the driver to the next result set even
