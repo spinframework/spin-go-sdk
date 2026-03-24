@@ -1,14 +1,18 @@
-spin_version = "1"
+spin_manifest_version = 2
+
+[application]
+name = "spin-http-tinygo-test"
+version = "0.1.0"
 authors = ["Fermyon Engineering <engineering@fermyon.com>"]
 description = "A simple Spin application written in (Tiny)Go."
-name = "spin-http-tinygo-test"
-trigger = { type = "http" }
-version = "1.0.0"
 
-[[component]]
-id = "http-tinygo-test"
-source = "main.wasm"
-[component.trigger]
+[[trigger.http]]
 route = "/hello/..."
-[component.build]
-command = "tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go"
+component = "http-test"
+
+[component.http-test]
+source = "main.wasm"
+allowed_outbound_hosts = []
+[component.http-test.build]
+command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+watch = ["**/*.go", "go.mod"]

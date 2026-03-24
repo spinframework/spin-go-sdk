@@ -1,3 +1,3 @@
 .PHONY: build
 build:
-	tinygo build -target=wasi -gc=leaking -o main.wasm main.go
+	tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm .

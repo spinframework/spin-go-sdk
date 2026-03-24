@@ -13,4 +13,4 @@ component = "hello"
 [component.hello]
 source = "main.wasm"
 [component.hello.build]
-command = "tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go"
+command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."

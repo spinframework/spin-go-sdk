@@ -22,7 +22,7 @@ allowed_outbound_hosts = [
 ]
 [component.hello.build]
 workdir = "hello"
-command = "tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go"
+command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
 
 [component.http-to-same-app]
 source = "http-to-same-app/main.wasm"
@@ -30,4 +30,4 @@ source = "http-to-same-app/main.wasm"
 allowed_outbound_hosts = ["http://self"]
 [component.http-to-same-app.build]
 workdir = "http-to-same-app"
-command = "tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go"
+command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."

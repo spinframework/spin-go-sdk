@@ -16,9 +16,9 @@ Building this as a WebAssembly module can be done using the `tinygo` compiler:
 
 ```shell
 $ spin build
-Building component outbound-http-to-same-app with `tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go`
+Building component outbound-http-to-same-app with `tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm .`
 Working directory: "./outbound-http-to-same-app"
-Building component tinygo-hello with `tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go`
+Building component tinygo-hello with `tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm .`
 Working directory: "./tinygo-hello"
 Finished building all Spin components
 ```

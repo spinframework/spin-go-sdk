@@ -9,7 +9,7 @@ import (
 	"io"
 	"reflect"
 
-	spindb "github.com/fermyon/spin-go-sdk/internal/db"
+	spindb "github.com/spinframework/spin-go-sdk/v2/internal/db"
 )
 
 // Open returns a new connection to the database.

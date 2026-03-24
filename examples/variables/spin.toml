@@ -18,4 +18,4 @@ source = "main.wasm"
 [component.variables.variables]
 message = "I'm a {{object}}"
 [component.variables.build]
-command = "tinygo build -target=wasi -gc=leaking -no-debug -o main.wasm main.go"
+command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
