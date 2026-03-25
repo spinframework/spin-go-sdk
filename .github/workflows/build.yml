@@ -13,22 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Go
+      - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.25'
 
-      - name: Setup componentize-go
-        run: |
-          curl -LO https://github.com/bytecodealliance/componentize-go/releases/download/v0.2.0/componentize-go-linux-amd64.tar.gz
-          echo "27fc32998f023a88a6a1f44524631a705163f23ce2a02fc14987726897360027  componentize-go-linux-amd64.tar.gz" | sha256sum --check
-          tar -xf componentize-go-linux-amd64.tar.gz
-          chmod +x componentize-go
-          mkdir -p $HOME/.local/bin
-          mv componentize-go $HOME/.local/bin/componentize-go
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install latest Rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Spin
+      - name: Install componentize-go
+        # TODO: Switch to pre-built release once new one is available (i.e. post-v0.2.0):
+        run: cargo install --locked --git https://github.com/bytecodealliance/componentize-go --rev 94413331
+
+      - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
         with:
           version: "v3.6.2"
