@@ -19,4 +19,4 @@ source = "main.wasm"
 message = "I'm a {{object}}"
 
 [component.variables.build]
-command = "componentize-go --world http-trigger --wit-path ../../wit build"
+command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"

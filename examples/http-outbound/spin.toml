@@ -22,7 +22,7 @@ allowed_outbound_hosts = [
 ]
 [component.hello.build]
 workdir = "hello"
-command = "componentize-go --world http-trigger --wit-path ../../../wit build"
+command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
 
 [component.http-to-same-app]
 source = "http-to-same-app/main.wasm"
@@ -30,5 +30,5 @@ source = "http-to-same-app/main.wasm"
 allowed_outbound_hosts = ["http://self"]
 [component.http-to-same-app.build]
 workdir = "http-to-same-app"
-command = "componentize-go --world http-trigger --wit-path ../../../wit build"
+command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
 

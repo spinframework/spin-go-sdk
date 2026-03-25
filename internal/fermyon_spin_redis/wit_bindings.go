@@ -28,11 +28,12 @@
 //     wasi:random@0.2.0-rc-2023-11-10
 //     wasi:cli@0.2.0-rc-2023-11-10
 //     wasi:http@0.2.0-rc-2023-11-10
+//     componentize-go:union
 
 package fermyon_spin_redis
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/fermyon_spin_redis_types"
+	"github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_redis_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

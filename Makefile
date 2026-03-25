@@ -13,13 +13,7 @@ regenerate-bindings:
 		-maxdepth 1 \
 		-type d \
 		! -name 'db' \
+		! -name 'export_fermyon_spin_inbound_redis' \
 		! -name 'export_wasi_http_0_2_0_incoming_handler' \
 		-exec rm -rf {} +
-	componentize-go -w http-trigger -d ./wit bindings --format -o internal --pkg-name github.com/spinframework/spin-go-sdk/v3/internal
-	find $$(pwd)/inbound_redis/internal/ \
-		-mindepth 1 \
-		-maxdepth 1 \
-		-type d \
-		! -name 'export_fermyon_spin_inbound_redis' \
-		-exec rm -rf {} +
-	componentize-go -w fermyon:spin/redis-trigger -d ./wit bindings --format -o inbound_redis/internal --pkg-name github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal
+	componentize-go -w http-trigger -w fermyon:spin/redis-trigger -d ./wit bindings --format -o internal --pkg-name github.com/spinframework/spin-go-sdk/v3/internal

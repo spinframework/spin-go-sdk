@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/spinframework/spin-go-sdk/v3/inbound_redis"
+	"github.com/spinframework/spin-go-sdk/v3/redis"
 )
 
 func init() {
-	// inbound_redis.Handle() must be called in the init() function.
-	inbound_redis.Handle(func(payload []byte) error {
+	// redis.Handle() must be called in the init() function.
+	redis.Handle(func(payload []byte) error {
 		fmt.Println("Payload::::")
 		fmt.Println(string(payload))
 		return nil

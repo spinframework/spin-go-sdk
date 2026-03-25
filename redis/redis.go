@@ -1,12 +1,28 @@
-// Package redis provides access to Redis within Spin components.
+// Package redis provides access to Redis within Spin components, as well as a
+// handler for inbound Redis messages.
 
 package redis
 
 import (
 	"fmt"
 
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/export_fermyon_spin_inbound_redis"
 	redis "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_redis"
+	redis_types "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_redis_types"
+	_ "github.com/spinframework/spin-go-sdk/v3/internal/wit_exports"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
+
+func Handle(handle func(message []byte) error) {
+	incominghandler.Exports.Handle = func(message []byte) wit.Result[wit.Unit, redis_types.Error] {
+		err := handle(message)
+		if err == nil {
+			return wit.Err[wit.Unit, redis_types.Error](redis_types.ErrorError)
+		} else {
+			return wit.Ok[wit.Unit, redis_types.Error](wit.Unit{})
+		}
+	}
+}
 
 // Client is a Redis client.
 type Client struct {

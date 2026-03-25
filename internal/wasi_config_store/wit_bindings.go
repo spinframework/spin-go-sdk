@@ -28,6 +28,7 @@
 //     wasi:random@0.2.0-rc-2023-11-10
 //     wasi:cli@0.2.0-rc-2023-11-10
 //     wasi:http@0.2.0-rc-2023-11-10
+//     componentize-go:union
 
 package wasi_config_store
 

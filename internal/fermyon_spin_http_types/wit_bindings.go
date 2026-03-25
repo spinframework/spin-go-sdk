@@ -28,41 +28,53 @@
 //     wasi:random@0.2.0-rc-2023-11-10
 //     wasi:cli@0.2.0-rc-2023-11-10
 //     wasi:http@0.2.0-rc-2023-11-10
+//     componentize-go:union
 
-package wit_exports
+package fermyon_spin_http_types
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/export_fermyon_spin_inbound_redis"
-	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
-	"runtime"
-	"unsafe"
 )
 
-var staticPinner = runtime.Pinner{}
-var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 2, 1))
-var syncExportPinner = runtime.Pinner{}
+type HttpStatus = uint16
+type Body = []uint8
+type Headers = []witTypes.Tuple2[string, string]
+type Params = []witTypes.Tuple2[string, string]
+type Uri = string
 
-//go:wasmexport fermyon:spin/inbound-redis#handle-message
-func wasm_export_fermyon_spin_inbound_redis_handle_message(arg0 uintptr, arg1 uint32) uintptr {
+const (
+	MethodGet     uint8 = 0
+	MethodPost    uint8 = 1
+	MethodPut     uint8 = 2
+	MethodDelete  uint8 = 3
+	MethodPatch   uint8 = 4
+	MethodHead    uint8 = 5
+	MethodOptions uint8 = 6
+)
 
-	value := unsafe.Slice((*uint8)(unsafe.Pointer(arg0)), arg1)
-	witRuntime.Unpin()
-	result := export_fermyon_spin_inbound_redis.HandleMessage(value)
+type Method = uint8
 
-	switch result.Tag() {
-	case witTypes.ResultOk:
-
-		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(0))
-
-	case witTypes.ResultErr:
-		payload := result.Err()
-		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(1))
-		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 1)) = int8(int32(payload))
-
-	default:
-		panic("unreachable")
-	}
-	return exportReturnArea
-
+type Request struct {
+	Method  Method
+	Uri     string
+	Headers []witTypes.Tuple2[string, string]
+	Params  []witTypes.Tuple2[string, string]
+	Body    witTypes.Option[[]uint8]
 }
+
+type Response struct {
+	Status  uint16
+	Headers witTypes.Option[[]witTypes.Tuple2[string, string]]
+	Body    witTypes.Option[[]uint8]
+}
+
+const (
+	HttpErrorSuccess               uint8 = 0
+	HttpErrorDestinationNotAllowed uint8 = 1
+	HttpErrorInvalidUrl            uint8 = 2
+	HttpErrorRequestError          uint8 = 3
+	HttpErrorRuntimeError          uint8 = 4
+	HttpErrorTooManyRequests       uint8 = 5
+)
+
+type HttpError = uint8

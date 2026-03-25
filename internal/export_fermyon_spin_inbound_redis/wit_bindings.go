@@ -1,7 +1,7 @@
 package export_fermyon_spin_inbound_redis
 
 import (
-	redis_types "github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/fermyon_spin_redis_types"
+	redis_types "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_redis_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

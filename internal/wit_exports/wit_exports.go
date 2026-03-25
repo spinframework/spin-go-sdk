@@ -28,23 +28,51 @@
 //     wasi:random@0.2.0-rc-2023-11-10
 //     wasi:cli@0.2.0-rc-2023-11-10
 //     wasi:http@0.2.0-rc-2023-11-10
+//     componentize-go:union
 
 package wit_exports
 
 import (
+	"github.com/spinframework/spin-go-sdk/v3/internal/export_fermyon_spin_inbound_redis"
 	"github.com/spinframework/spin-go-sdk/v3/internal/export_wasi_http_0_2_0_incoming_handler"
 	"github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
+	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"
+	"unsafe"
 )
 
 var staticPinner = runtime.Pinner{}
-var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 0, 1))
+var exportReturnArea = uintptr(witRuntime.Allocate(&staticPinner, 2, 1))
 var syncExportPinner = runtime.Pinner{}
 
 //go:wasmexport wasi:http/incoming-handler@0.2.0#handle
 func wasm_export_wasi_http_0_2_0_incoming_handler_handle(arg0 int32, arg1 int32) {
 
 	export_wasi_http_0_2_0_incoming_handler.Handle(wasi_http_0_2_0_types.IncomingRequestFromOwnHandle(int32(uintptr(arg0))), wasi_http_0_2_0_types.ResponseOutparamFromOwnHandle(int32(uintptr(arg1))))
+
+}
+
+//go:wasmexport fermyon:spin/inbound-redis#handle-message
+func wasm_export_fermyon_spin_inbound_redis_handle_message(arg0 uintptr, arg1 uint32) uintptr {
+
+	value := unsafe.Slice((*uint8)(unsafe.Pointer(arg0)), arg1)
+	witRuntime.Unpin()
+	result := export_fermyon_spin_inbound_redis.HandleMessage(value)
+
+	switch result.Tag() {
+	case witTypes.ResultOk:
+
+		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(0))
+
+	case witTypes.ResultErr:
+		payload := result.Err()
+		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 0)) = int8(int32(1))
+		*(*int8)(unsafe.Add(unsafe.Pointer(exportReturnArea), 1)) = int8(int32(payload))
+
+	default:
+		panic("unreachable")
+	}
+	return exportReturnArea
 
 }
