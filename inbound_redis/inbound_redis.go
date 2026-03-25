@@ -3,9 +3,9 @@
 package inbound_redis
 
 import (
-	incominghandler "github.com/spinframework/spin-go-sdk/v3/redis_internal/export_fermyon_spin_inbound_redis"
-	redis_types "github.com/spinframework/spin-go-sdk/v3/redis_internal/fermyon_spin_redis_types"
-	_ "github.com/spinframework/spin-go-sdk/v3/redis_internal/wit_exports"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/export_fermyon_spin_inbound_redis"
+	redis_types "github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/fermyon_spin_redis_types"
+	_ "github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/wit_exports"
 	wit_dir "github.com/spinframework/spin-go-sdk/v3/wit"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )

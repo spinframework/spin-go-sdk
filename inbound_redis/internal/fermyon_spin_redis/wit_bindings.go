@@ -32,7 +32,7 @@
 package fermyon_spin_redis
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/redis_internal/fermyon_spin_redis_types"
+	"github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/fermyon_spin_redis_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

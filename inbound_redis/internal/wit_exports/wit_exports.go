@@ -32,7 +32,7 @@
 package wit_exports
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/redis_internal/export_fermyon_spin_inbound_redis"
+	"github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/export_fermyon_spin_inbound_redis"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

@@ -29,10 +29,10 @@
 //     wasi:cli@0.2.0-rc-2023-11-10
 //     wasi:http@0.2.0-rc-2023-11-10
 
-package fermyon_spin_mysql
+package fermyon_spin_postgres
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/redis_internal/fermyon_spin_rdbms_types"
+	"github.com/spinframework/spin-go-sdk/v3/inbound_redis/internal/fermyon_spin_rdbms_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"
@@ -43,78 +43,78 @@ type ParameterValue = fermyon_spin_rdbms_types.ParameterValue
 type RowSet = fermyon_spin_rdbms_types.RowSet
 
 const (
-	MysqlErrorSuccess               uint8 = 0
-	MysqlErrorConnectionFailed      uint8 = 1
-	MysqlErrorBadParameter          uint8 = 2
-	MysqlErrorQueryFailed           uint8 = 3
-	MysqlErrorValueConversionFailed uint8 = 4
-	MysqlErrorOtherError            uint8 = 5
+	PgErrorSuccess               uint8 = 0
+	PgErrorConnectionFailed      uint8 = 1
+	PgErrorBadParameter          uint8 = 2
+	PgErrorQueryFailed           uint8 = 3
+	PgErrorValueConversionFailed uint8 = 4
+	PgErrorOtherError            uint8 = 5
 )
 
 // General purpose error.
-type MysqlError struct {
+type PgError struct {
 	tag   uint8
 	value any
 }
 
-func (self MysqlError) Tag() uint8 {
+func (self PgError) Tag() uint8 {
 	return self.tag
 }
 
-func (self MysqlError) ConnectionFailed() string {
-	if self.tag != MysqlErrorConnectionFailed {
+func (self PgError) ConnectionFailed() string {
+	if self.tag != PgErrorConnectionFailed {
 		panic("tag mismatch")
 	}
 	return self.value.(string)
 }
-func (self MysqlError) BadParameter() string {
-	if self.tag != MysqlErrorBadParameter {
+func (self PgError) BadParameter() string {
+	if self.tag != PgErrorBadParameter {
 		panic("tag mismatch")
 	}
 	return self.value.(string)
 }
-func (self MysqlError) QueryFailed() string {
-	if self.tag != MysqlErrorQueryFailed {
+func (self PgError) QueryFailed() string {
+	if self.tag != PgErrorQueryFailed {
 		panic("tag mismatch")
 	}
 	return self.value.(string)
 }
-func (self MysqlError) ValueConversionFailed() string {
-	if self.tag != MysqlErrorValueConversionFailed {
+func (self PgError) ValueConversionFailed() string {
+	if self.tag != PgErrorValueConversionFailed {
 		panic("tag mismatch")
 	}
 	return self.value.(string)
 }
-func (self MysqlError) OtherError() string {
-	if self.tag != MysqlErrorOtherError {
+func (self PgError) OtherError() string {
+	if self.tag != PgErrorOtherError {
 		panic("tag mismatch")
 	}
 	return self.value.(string)
 }
 
-func MakeMysqlErrorSuccess() MysqlError {
-	return MysqlError{MysqlErrorSuccess, nil}
+func MakePgErrorSuccess() PgError {
+	return PgError{PgErrorSuccess, nil}
 }
-func MakeMysqlErrorConnectionFailed(value string) MysqlError {
-	return MysqlError{MysqlErrorConnectionFailed, value}
+func MakePgErrorConnectionFailed(value string) PgError {
+	return PgError{PgErrorConnectionFailed, value}
 }
-func MakeMysqlErrorBadParameter(value string) MysqlError {
-	return MysqlError{MysqlErrorBadParameter, value}
+func MakePgErrorBadParameter(value string) PgError {
+	return PgError{PgErrorBadParameter, value}
 }
-func MakeMysqlErrorQueryFailed(value string) MysqlError {
-	return MysqlError{MysqlErrorQueryFailed, value}
+func MakePgErrorQueryFailed(value string) PgError {
+	return PgError{PgErrorQueryFailed, value}
 }
-func MakeMysqlErrorValueConversionFailed(value string) MysqlError {
-	return MysqlError{MysqlErrorValueConversionFailed, value}
+func MakePgErrorValueConversionFailed(value string) PgError {
+	return PgError{PgErrorValueConversionFailed, value}
 }
-func MakeMysqlErrorOtherError(value string) MysqlError {
-	return MysqlError{MysqlErrorOtherError, value}
+func MakePgErrorOtherError(value string) PgError {
+	return PgError{PgErrorOtherError, value}
 }
 
-//go:wasmimport fermyon:spin/mysql query
+//go:wasmimport fermyon:spin/postgres query
 func wasm_import_query(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 uintptr)
 
-func Query(address string, statement string, params []fermyon_spin_rdbms_types.ParameterValue) witTypes.Result[fermyon_spin_rdbms_types.RowSet, MysqlError] {
+func Query(address string, statement string, params []fermyon_spin_rdbms_types.ParameterValue) witTypes.Result[fermyon_spin_rdbms_types.RowSet, PgError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
@@ -218,7 +218,7 @@ func Query(address string, statement string, params []fermyon_spin_rdbms_types.P
 	}
 
 	wasm_import_query(uintptr(utf8), uint32(len(address)), uintptr(utf80), uint32(len(statement)), uintptr(result2), length, returnArea)
-	var result14 witTypes.Result[fermyon_spin_rdbms_types.RowSet, MysqlError]
+	var result14 witTypes.Result[fermyon_spin_rdbms_types.RowSet, PgError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 		result3 := make([]fermyon_spin_rdbms_types.Column, 0, *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4))))
@@ -309,44 +309,44 @@ func Query(address string, statement string, params []fermyon_spin_rdbms_types.P
 			result7 = append(result7, result6)
 		}
 
-		result14 = witTypes.Ok[fermyon_spin_rdbms_types.RowSet, MysqlError](fermyon_spin_rdbms_types.RowSet{result3, result7})
+		result14 = witTypes.Ok[fermyon_spin_rdbms_types.RowSet, PgError](fermyon_spin_rdbms_types.RowSet{result3, result7})
 	case 1:
-		var variant13 MysqlError
+		var variant13 PgError
 		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 4))) {
 		case 0:
 
-			variant13 = MakeMysqlErrorSuccess()
+			variant13 = MakePgErrorSuccess()
 
 		case 1:
 			value8 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
 
-			variant13 = MakeMysqlErrorConnectionFailed(value8)
+			variant13 = MakePgErrorConnectionFailed(value8)
 
 		case 2:
 			value9 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
 
-			variant13 = MakeMysqlErrorBadParameter(value9)
+			variant13 = MakePgErrorBadParameter(value9)
 
 		case 3:
 			value10 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
 
-			variant13 = MakeMysqlErrorQueryFailed(value10)
+			variant13 = MakePgErrorQueryFailed(value10)
 
 		case 4:
 			value11 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
 
-			variant13 = MakeMysqlErrorValueConversionFailed(value11)
+			variant13 = MakePgErrorValueConversionFailed(value11)
 
 		case 5:
 			value12 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
 
-			variant13 = MakeMysqlErrorOtherError(value12)
+			variant13 = MakePgErrorOtherError(value12)
 
 		default:
 			panic("unreachable")
 		}
 
-		result14 = witTypes.Err[fermyon_spin_rdbms_types.RowSet, MysqlError](variant13)
+		result14 = witTypes.Err[fermyon_spin_rdbms_types.RowSet, PgError](variant13)
 	default:
 		panic("unreachable")
 	}
@@ -355,14 +355,14 @@ func Query(address string, statement string, params []fermyon_spin_rdbms_types.P
 
 }
 
-//go:wasmimport fermyon:spin/mysql execute
+//go:wasmimport fermyon:spin/postgres execute
 func wasm_import_execute(arg0 uintptr, arg1 uint32, arg2 uintptr, arg3 uint32, arg4 uintptr, arg5 uint32, arg6 uintptr)
 
-func Execute(address string, statement string, params []fermyon_spin_rdbms_types.ParameterValue) witTypes.Result[witTypes.Unit, MysqlError] {
+func Execute(address string, statement string, params []fermyon_spin_rdbms_types.ParameterValue) witTypes.Result[uint64, PgError] {
 	pinner := &runtime.Pinner{}
 	defer pinner.Unpin()
 
-	returnArea := uintptr(witRuntime.Allocate(pinner, (4 * 4), 4))
+	returnArea := uintptr(witRuntime.Allocate(pinner, (16 + 2*4), 8))
 	utf8 := unsafe.Pointer(unsafe.StringData(address))
 	pinner.Pin(utf8)
 	utf80 := unsafe.Pointer(unsafe.StringData(statement))
@@ -462,48 +462,48 @@ func Execute(address string, statement string, params []fermyon_spin_rdbms_types
 	}
 
 	wasm_import_execute(uintptr(utf8), uint32(len(address)), uintptr(utf80), uint32(len(statement)), uintptr(result2), length, returnArea)
-	var result7 witTypes.Result[witTypes.Unit, MysqlError]
+	var result7 witTypes.Result[uint64, PgError]
 	switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 0))) {
 	case 0:
 
-		result7 = witTypes.Ok[witTypes.Unit, MysqlError](witTypes.Unit{})
+		result7 = witTypes.Ok[uint64, PgError](uint64(*(*int64)(unsafe.Add(unsafe.Pointer(returnArea), 8))))
 	case 1:
-		var variant MysqlError
-		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 4))) {
+		var variant PgError
+		switch uint8(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), 8))) {
 		case 0:
 
-			variant = MakeMysqlErrorSuccess()
+			variant = MakePgErrorSuccess()
 
 		case 1:
-			value := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
+			value := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4))))
 
-			variant = MakeMysqlErrorConnectionFailed(value)
+			variant = MakePgErrorConnectionFailed(value)
 
 		case 2:
-			value3 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
+			value3 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4))))
 
-			variant = MakeMysqlErrorBadParameter(value3)
+			variant = MakePgErrorBadParameter(value3)
 
 		case 3:
-			value4 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
+			value4 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4))))
 
-			variant = MakeMysqlErrorQueryFailed(value4)
+			variant = MakePgErrorQueryFailed(value4)
 
 		case 4:
-			value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
+			value5 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4))))
 
-			variant = MakeMysqlErrorValueConversionFailed(value5)
+			variant = MakePgErrorValueConversionFailed(value5)
 
 		case 5:
-			value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (2 * 4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (3 * 4))))
+			value6 := unsafe.String((*uint8)(unsafe.Pointer(uintptr(*(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 1*4)))))), *(*uint32)(unsafe.Add(unsafe.Pointer(returnArea), (8 + 2*4))))
 
-			variant = MakeMysqlErrorOtherError(value6)
+			variant = MakePgErrorOtherError(value6)
 
 		default:
 			panic("unreachable")
 		}
 
-		result7 = witTypes.Err[witTypes.Unit, MysqlError](variant)
+		result7 = witTypes.Err[uint64, PgError](variant)
 	default:
 		panic("unreachable")
 	}
