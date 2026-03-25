@@ -26,7 +26,7 @@ func init() {
 		channel := os.Getenv("REDIS_CHANNEL")
 
 		// payload is the data publish to the redis channel.
-		payload := []byte(`Hello redis from tinygo!`)
+		payload := []byte(`Hello redis from Go!`)
 
 		rdb, err := redis.NewClient(addr)
 		if err != nil {
