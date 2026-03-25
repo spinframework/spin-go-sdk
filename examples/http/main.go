@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
+	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
 )
 
 func init() {
@@ -13,23 +12,10 @@ func init() {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("foo", "bar")
 
-		fmt.Fprintln(w, "== REQUEST ==")
-		fmt.Fprintln(w, "URL:    ", r.URL)
-		fmt.Fprintln(w, "Method: ", r.Method)
-		fmt.Fprintln(w, "Headers:")
-		for k, v := range r.Header {
-			fmt.Fprintf(w, "  %q: %q \n", k, v[0])
-		}
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			fmt.Fprintln(w, "Body Error: ", err)
-		} else {
-			fmt.Fprintln(w, "Body:   ", string(body))
-		}
-
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "== RESPONSE ==")
-		fmt.Fprintln(w, "Hello Fermyon!")
+		fmt.Fprintln(w, "Hello spinframework!")
+		fmt.Fprintln(w, "Hello again spinframework!")
 	})
 }
 

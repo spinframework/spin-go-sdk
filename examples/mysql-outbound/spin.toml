@@ -1,19 +1,19 @@
 spin_manifest_version = 2
 
 [application]
-authors = ["Patrick Jiang <patrickjiang0530@gmail.com>"]
-description = ""
-name = "mysql-outbound-example"
+name = "go-mysql-outbound-example"
 version = "0.1.0"
+authors = ["Andrew Steurer <94206073+asteurer@users.noreply.github.com>"]
+description = "Using Spin with MySQL"
 
 [[trigger.http]]
 route = "/..."
 component = "mysql"
 
 [component.mysql]
-environment = { DB_URL = "mysql://spin:spin@127.0.0.1/spin_dev" }
+environment = { DB_URL = "mysql://spin:spin@127.0.0.1/spin_data" }
 source = "main.wasm"
 allowed_outbound_hosts = ["mysql://127.0.0.1"]
 [component.mysql.build]
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+command = "componentize-go --world http-trigger --wit-path ../../wit build"
 watch = ["**/*.go", "go.mod"]

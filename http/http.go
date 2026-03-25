@@ -1,15 +1,25 @@
 // Package http contains the helper functions for writing Spin HTTP components
-// in TinyGo, as well as for sending outbound HTTP requests.
+// in Go, as well as for sending outbound HTTP requests.
 package http
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
 	"github.com/julienschmidt/httprouter"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/export_wasi_http_0_2_0_incoming_handler"
+	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
+	_ "github.com/spinframework/spin-go-sdk/v3/internal/wit_exports"
+	"github.com/spinframework/spin-go-sdk/v3/wit"
 )
+
+// force wit files to be shipped with sdk dependency
+var _ = wit.Wit
+
+func init() {
+	incominghandler.Exports.Handle = wasiHandle
+}
 
 const (
 	// The application base path.
@@ -30,11 +40,6 @@ const (
 	// The client address for the request.
 	HeaderClientAddr = "spin-client-addr"
 )
-
-// Override the default HTTP client to be compatible with the Spin SDK.
-func init() {
-	http.DefaultClient = NewClient()
-}
 
 // Router is a http.Handler which can be used to dispatch requests to different
 // handler functions via configurable routes
@@ -59,26 +64,6 @@ func NewRouter() *Router {
 	return httprouter.New()
 }
 
-// NewTransport returns http.RoundTripper backed by Spin SDK
-func NewTransport() http.RoundTripper {
-	return &Transport{}
-}
-
-// Transport implements http.RoundTripper
-type Transport struct{}
-
-// RoundTrip makes roundtrip using Spin SDK
-func (r *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	return Send(req)
-}
-
-// NewClient returns a new HTTP client compatible with the Spin SDK
-func NewClient() *http.Client {
-	return &http.Client{
-		Transport: &Transport{},
-	}
-}
-
 // handler is the function that will be called by the http trigger in Spin.
 var handler = defaultHandler
 
@@ -94,23 +79,21 @@ func Handle(fn func(http.ResponseWriter, *http.Request)) {
 	handler = fn
 }
 
-// Get creates a GET HTTP request to a given URL and returns the HTTP response.
-// The destination of the request must be explicitly allowed in the Spin application
-// configuration, otherwise the request will not be sent.
-func Get(url string) (*http.Response, error) {
-	return get(url)
-}
+var wasiHandle = func(request *types.IncomingRequest, responseOut *types.ResponseOutparam) {
+	// convert the incoming request to go's net/http type
+	httpReq, err := NewHttpRequest(*request)
+	if err != nil {
+		//TODO(rajatjindal): return internal error from here
+		fmt.Printf("failed to convert wasi/http/types.IncomingRequest to http.Request: %s\n", err)
+		return
+	}
 
-// Post creates a POST HTTP request and returns the HTTP response.
-// The destination of the request must be explicitly allowed in the Spin application
-// configuration, otherwise the request will not be sent.
-func Post(url string, contentType string, body io.Reader) (*http.Response, error) {
-	return post(url, contentType, body)
-}
+	// convert the response outparam to go's net/http type
+	httpRes := NewHttpResponseWriter(*responseOut)
 
-// Send sends an HTTP request and return the HTTP response.
-// The destination of the request must be explicitly allowed in the Spin application
-// configuration, otherwise the request will not be sent.
-func Send(req *http.Request) (*http.Response, error) {
-	return send(req)
+	// run the user's handler
+	handler(httpRes, httpReq)
+
+	// ensure default status ok and response body are set
+	_ = httpRes.reconcile()
 }

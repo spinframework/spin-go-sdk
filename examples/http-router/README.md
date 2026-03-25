@@ -1,8 +1,7 @@
-# Spin component in TinyGo using the Spin router
+# Spin component in Go using the Spin router
 
 ```shell
-$ go mod tidy
-$ RUST_LOG=spin=trace spin build --up
+$ spin build --up
 ```
 
 The application can now receive requests on `http://localhost:3000`:

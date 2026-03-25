@@ -1,89 +1,118 @@
-// Package redis provides the handler function for the Redis trigger, as well
-// as access to Redis within Spin components.
+// Package redis provides access to Redis within Spin components.
+
 package redis
 
 import (
-	"errors"
 	"fmt"
-	"os"
+
+	redis "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_redis"
 )
-
-// handler is the function that will be called by the Redis trigger in Spin.
-var handler = defaultHandler
-
-// defaultHandler is a placeholder for returning a useful error to stdout when
-// the handler is not set.
-var defaultHandler = func(payload []byte) error {
-	fmt.Fprintln(os.Stderr, "redis handler undefined")
-	return nil
-}
-
-// Handle sets the handler function for redis.
-// It must be set in an init() function.
-func Handle(fn func(payload []byte) error) {
-	handler = fn
-}
 
 // Client is a Redis client.
 type Client struct {
-	addr string
+	conn redis.Connection
 }
 
 // NewClient returns a Redis client.
-func NewClient(address string) *Client {
-	return &Client{addr: address}
+func NewClient(address string) (Client, error) {
+	result := redis.ConnectionOpen(address)
+	if result.IsErr() {
+		return Client{}, toError(result.Err())
+	}
+
+	return Client{conn: *result.Ok()}, nil
 }
 
 // Publish a Redis message to the specified channel.
 func (c *Client) Publish(channel string, payload []byte) error {
-	if len(payload) == 0 {
-		return errors.New("payload is empty")
+	result := c.conn.Publish(channel, redis.Payload(payload))
+	if result.IsErr() {
+		return toError(result.Err())
 	}
-	return publish(c.addr, channel, payload)
+
+	return nil
 }
 
-// Get the value of a key. An error is returned if the value stored at key is
-// not a string.
+// Get the value of a key.
 func (c *Client) Get(key string) ([]byte, error) {
-	return get(c.addr, key)
-}
-
-// Set key to value. If key alreads holds a value, it is overwritten.
-func (c *Client) Set(key string, payload []byte) error {
-	if len(payload) == 0 {
-		return errors.New("payload is empty")
+	result := c.conn.Get(key)
+	if result.IsErr() {
+		return nil, toError(result.Err())
 	}
-	return set(c.addr, key, payload)
+
+	if result.Ok().IsNone() {
+		return nil, nil
+	}
+
+	return result.Ok().Some(), nil
 }
 
-// Incr increments the number stored at key by one. If the key does not exist,
-// it is set to 0 before performing the operation. An error is returned if
-// the key contains a value of the wrong type or contains a string that can not
-// be represented as integer.
+// Set key to value.
+//
+// If key already holds a value, it is overwritten.
+func (c *Client) Set(key string, payload []byte) error {
+	result := c.conn.Set(key, redis.Payload(payload))
+	if result.IsErr() {
+		return toError(result.Err())
+	}
+
+	return nil
+}
+
+// Increments the number stored at key by one.
+//
+// If the key does not exist, it is set to 0 before performing the operation.
+// An `error::type-error` is returned if the key contains a value of the wrong type
+// or contains a string that can not be represented as integer.
 func (c *Client) Incr(key string) (int64, error) {
-	return incr(c.addr, key)
+	result := c.conn.Incr(key)
+	if result.IsErr() {
+		return 0, toError(result.Err())
+	}
+
+	return result.Ok(), nil
 }
 
-// Del removes the specified keys. A key is ignored if it does not exist.
-func (c *Client) Del(keys ...string) (int64, error) {
-	return del(c.addr, keys)
+// Removes the specified keys.
+//
+// A key is ignored if it does not exist. Returns the number of keys deleted.
+func (c *Client) Del(keys ...string) (uint32, error) {
+	result := c.conn.Del(keys)
+	if result.IsErr() {
+		return 0, toError(result.Err())
+	}
+
+	return result.Ok(), nil
 }
 
-// Sadd adds the specified values to the set for the specified key, creating
-// it if it does not already exist.
-func (c *Client) Sadd(key string, values ...string) (int64, error) {
-	return sadd(c.addr, key, values)
+// Add the specified `values` to the set named `key`, returning the number of newly-added values.
+func (c *Client) Sadd(key string, values ...string) (uint32, error) {
+	result := c.conn.Sadd(key, values)
+	if result.IsErr() {
+		return 0, toError(result.Err())
+	}
+
+	return result.Ok(), nil
 }
 
-// Smembers gets the elements of the set for the specified key.
+// Retrieve the contents of the set named `key`.
 func (c *Client) Smembers(key string) ([]string, error) {
-	return smembers(c.addr, key)
+	result := c.conn.Smembers(key)
+	if result.IsErr() {
+		return nil, toError(result.Err())
+	}
+
+	return result.Ok(), nil
 }
 
-// Srem removes the specified elements from the set for the specified key.
-// This has no effect if the key does not exist.
-func (c *Client) Srem(key string, values ...string) (int64, error) {
-	return srem(c.addr, key, values)
+// Remove the specified `values` from the set named `key`, returning the number of newly-removed values.
+func (c *Client) Srem(key string, values ...string) (uint32, error) {
+	result := c.conn.Srem(key, values)
+	if result.IsErr() {
+		return 0, toError(result.Err())
+	}
+
+	return result.Ok(), nil
 }
 
 // ResultKind represents a result type returned from executing a Redis command.
@@ -127,7 +156,7 @@ type Result struct {
 //
 // Arguments must be string, []byte, int, int64, or int32.
 func (c *Client) Execute(command string, arguments ...any) ([]*Result, error) {
-	var params []*argument
+	var params []redis.RedisParameter
 	for _, a := range arguments {
 		p, err := createParameter(a)
 		if err != nil {
@@ -135,5 +164,62 @@ func (c *Client) Execute(command string, arguments ...any) ([]*Result, error) {
 		}
 		params = append(params, p)
 	}
-	return execute(c.addr, command, params)
+
+	result := c.conn.Execute(command, params)
+	if result.IsErr() {
+		return nil, toError(result.Err())
+	}
+
+	var results []*Result
+	for _, r := range result.Ok() {
+		results = append(results, toResult(r))
+	}
+
+	return results, nil
+}
+
+func createParameter(x any) (redis.RedisParameter, error) {
+	switch v := x.(type) {
+	case int:
+		return redis.MakeRedisParameterInt64(int64(v)), nil
+	case int64:
+		return redis.MakeRedisParameterInt64(v), nil
+	case int32:
+		return redis.MakeRedisParameterInt64(int64(v)), nil
+	case []byte:
+		return redis.MakeRedisParameterBinary(redis.Payload(v)), nil
+	case string:
+		return redis.MakeRedisParameterBinary(redis.Payload(v)), nil
+	default:
+		return redis.RedisParameter{}, fmt.Errorf("invalid type %T; must be string, []byte, int, int64, or int32", v)
+	}
+}
+
+func toResult(param redis.RedisResult) *Result {
+	switch param.Tag() {
+	case redis.RedisResultStatus:
+		return &Result{
+			Kind: ResultKindStatus,
+			Val:  param.Status(),
+		}
+	case redis.RedisResultInt64:
+		return &Result{
+			Kind: ResultKindInt64,
+			Val:  param.Int64(),
+		}
+	case redis.RedisResultBinary:
+		return &Result{
+			Kind: ResultKindBinary,
+			Val:  param.Binary(),
+		}
+	default:
+		return &Result{
+			Kind: ResultKindNil,
+			Val:  nil,
+		}
+	}
+}
+
+func toError(e redis.Error) error {
+	return fmt.Errorf("%v", e.Other())
 }

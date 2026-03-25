@@ -1,70 +1,49 @@
 package main
 
 import (
-	"io"
+	"encoding/json"
+	"fmt"
 	"net/http"
 
-	spin_http "github.com/spinframework/spin-go-sdk/v2/http"
-	"github.com/spinframework/spin-go-sdk/v2/kv"
+	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
+	"github.com/spinframework/spin-go-sdk/v3/kv"
 )
 
 func init() {
-	// handler for the http trigger
-	spin_http.Handle(func(w http.ResponseWriter, r *http.Request) {
-		store, err := kv.OpenStore("default")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer store.Close()
-
-		body, err := io.ReadAll(r.Body)
+	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
+		store, err := kv.OpenDefault()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		switch r.Method {
-		case http.MethodPost:
-			err := store.Set(r.URL.Path, body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(http.StatusOK)
-		case http.MethodGet:
-			value, err := store.Get(r.URL.Path)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(value)
-		case http.MethodDelete:
-			if err := store.Delete(r.URL.Path); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			w.WriteHeader(http.StatusOK)
-		case http.MethodHead:
-			exists, err := store.Exists(r.URL.Path)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
-			if exists {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			w.WriteHeader(http.StatusNotFound)
-		default:
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		err = store.Set("foo", []byte("bar"))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+
+		value, err := store.Get("foo")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if string(value) != "bar" {
+			http.Error(w, fmt.Sprintf("expected: %q, got: %q", "bar", value), http.StatusInternalServerError)
+			return
+		}
+
+		keys, err := store.GetKeys()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(keys)
 	})
 }
 

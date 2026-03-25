@@ -1,16 +1,17 @@
 spin_manifest_version = 2
 
 [application]
-authors = ["Fermyon Engineering <engineering@fermyon.com>"]
-name = "key-value-example"
-version = "0.1.0"
+authors = ["Rajat Jindal <rajatjindal83@gmail.com>"]
+description = "A simple Spin application written in Go."
+name = "hello-kv"
+version = "1.0.0"
 
 [[trigger.http]]
-route = "/..."
-component = "key-value"
+route = "/hello"
+component = "hello"
 
-[component.key-value]
+[component.hello]
 source = "main.wasm"
 key_value_stores = ["default"]
-[component.key-value.build]
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+[component.hello.build]
+command = "componentize-go --world http-trigger --wit-path ../../wit build"

@@ -42,7 +42,7 @@ type testSpin struct {
 	cmd    *exec.Cmd
 }
 
-func startSpin(t *testing.T, dir string) *testSpin {
+func startSpin(t *testing.T, dir string, extraArgs ...string) *testSpin {
 	buildApp(t, dir)
 
 	url := getFreePort(t)
@@ -50,7 +50,7 @@ func startSpin(t *testing.T, dir string) *testSpin {
 	// long timeout because... ci
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 
-	cmd := exec.CommandContext(ctx, spinBinary, "up", "--listen", url)
+	cmd := exec.CommandContext(ctx, spinBinary, append([]string{"up", "--listen", url}, extraArgs...)...)
 	cmd.Dir = dir
 	stderr := new(bytes.Buffer)
 	cmd.Stderr = stderr
@@ -60,7 +60,7 @@ func startSpin(t *testing.T, dir string) *testSpin {
 	}
 
 	go func() {
-		cmd.Wait()
+		_ = cmd.Wait()
 		if ctx.Err() == nil {
 			t.Log("spin exited before the test finished:", cmd.ProcessState)
 			t.Log("stderr:\n", stderr.String())
@@ -91,8 +91,8 @@ func buildApp(t *testing.T, dir string) {
 	}
 }
 
-func TestSpinRoundTrip(t *testing.T) {
-	spin := startSpin(t, "http/testdata/spin-roundtrip")
+func TestHTTPTrigger(t *testing.T) {
+	spin := startSpin(t, "http/testdata/http")
 	defer spin.cancel()
 
 	resp := retryGet(t, spin.url+"/hello")
@@ -108,31 +108,7 @@ func TestSpinRoundTrip(t *testing.T) {
 	}
 
 	// assert response body
-	want := "Hello world!\n"
-	got := string(b)
-	if want != got {
-		t.Fatalf("body is not equal: want = %q got = %q", want, got)
-	}
-}
-
-func TestHTTPTriger(t *testing.T) {
-	spin := startSpin(t, "http/testdata/http-tinygo")
-	defer spin.cancel()
-
-	resp := retryGet(t, spin.url+"/hello")
-	spin.cancel()
-	if resp.Body == nil {
-		t.Fatal("body is nil")
-	}
-	t.Log(resp.Status)
-	b, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// assert response body
-	want := "Hello world!\n"
+	want := "== RESPONSE ==\nHello spinframework!\nHello again spinframework!\n"
 	got := string(b)
 	if want != got {
 		t.Fatalf("body is not equal: want = %q got = %q", want, got)
@@ -144,14 +120,61 @@ func TestHTTPTriger(t *testing.T) {
 	}
 }
 
-// TestBuildExamples ensures that the tinygo examples will build successfully.
+func TestKeyValue(t *testing.T) {
+	spin := startSpin(t, "kv/testdata/key-value")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url+"/hello")
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "[\"foo\"]\n"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+}
+
+func TestVariables(t *testing.T) {
+	spin := startSpin(t, "variables/testdata/variables")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url)
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "message:  I'm a teapot\n"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+}
+
+// TestBuildExamples ensures that the Go examples will build successfully.
 func TestBuildExamples(t *testing.T) {
 	examples, err := os.ReadDir("examples")
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, example := range examples {
-		example := example
 		t.Run(example.Name(), func(t *testing.T) {
 			t.Parallel()
 			buildApp(t, filepath.Join("examples", example.Name()))

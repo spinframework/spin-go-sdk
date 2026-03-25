@@ -1,8 +1,6 @@
 package db
 
-import (
-	"database/sql/driver"
-)
+import "database/sql/driver"
 
 // GlobalParameterConverter is a global valueConverter instance to convert parameters.
 var GlobalParameterConverter = &valueConverter{}

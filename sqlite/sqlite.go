@@ -7,7 +7,8 @@ import (
 	"errors"
 	"io"
 
-	spindb "github.com/spinframework/spin-go-sdk/v2/internal/db"
+	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	sqlite "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_sqlite"
 )
 
 // Open returns a new connection to the database.
@@ -17,18 +18,17 @@ func Open(name string) *sql.DB {
 
 // conn represents a database connection.
 type conn struct {
-	_ptr uint32
+	spinConn sqlite.Connection
 }
 
 // Close the connection.
 func (c *conn) Close() error {
-	c.close()
 	return nil
 }
 
 // Prepare returns a prepared statement, bound to this connection.
 func (c *conn) Prepare(query string) (driver.Stmt, error) {
-	return &stmt{c: c, query: query}, nil
+	return &stmt{conn: c, query: query}, nil
 }
 
 // Begin isn't supported.
@@ -58,14 +58,12 @@ func (d *connector) Driver() driver.Driver {
 
 // Open returns a new connection to the database.
 func (d *connector) Open(name string) (driver.Conn, error) {
-	conn, err := open(name)
-	if err != nil {
-		return nil, err
+	results := sqlite.ConnectionOpen(name)
+	if results.IsErr() {
+		return nil, toError(results.Err())
 	}
-
-	d.conn = conn
-
-	return conn, err
+	d.conn = &conn{spinConn: *results.Ok()}
+	return d.conn, nil
 }
 
 // Close closes the connection to the database.
@@ -132,7 +130,7 @@ func (r *rows) NextResultSet() error {
 }
 
 type stmt struct {
-	c     *conn
+	conn  *conn
 	query string
 }
 
@@ -152,22 +150,50 @@ func (s *stmt) NumInput() int {
 
 // Query executes a query that may return rows, such as a SELECT.
 func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
-	params := make([]any, len(args))
-	for i := range args {
-		params[i] = args[i]
+	sqliteParams := make([]sqlite.Value, len(args))
+	for i, v := range args {
+		sqliteParams[i] = toSqliteValue(v)
 	}
-	return s.c.execute(s.query, params)
+
+	results := s.conn.spinConn.Execute(s.query, sqliteParams)
+	if results.IsErr() {
+		return nil, toError(results.Err())
+	}
+
+	rowLen := len(results.Ok().Rows)
+	allRows := make([][]any, rowLen)
+	for rowNum, row := range results.Ok().Rows {
+		allRows[rowNum] = toRow(row.Values)
+	}
+
+	cols := results.Ok().Columns
+	colNames := make([]string, len(cols))
+	for i, c := range cols {
+		colNames[i] = c
+	}
+
+	rows := &rows{
+		columns: colNames,
+		rows:    allRows,
+		len:     int(rowLen),
+	}
+	return rows, nil
 }
 
 // Exec executes a query that doesn't return rows, such as an INSERT or
 // UPDATE.
 func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
-	params := make([]any, len(args))
-	for i := range args {
-		params[i] = args[i]
+	sqliteParams := make([]sqlite.Value, len(args))
+	for i, v := range args {
+		sqliteParams[i] = toSqliteValue(v)
 	}
-	_, err := s.c.execute(s.query, params)
-	return &result{}, err
+
+	queryResult := s.conn.spinConn.Execute(s.query, sqliteParams)
+	if queryResult.IsErr() {
+		return &result{}, toError(queryResult.Err())
+	}
+
+	return &result{}, nil
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
@@ -183,4 +209,78 @@ func (r result) LastInsertId() (int64, error) {
 
 func (r result) RowsAffected() (int64, error) {
 	return -1, errors.New("RowsAffected is unsupported by this driver")
+}
+
+func toSqliteValue(x any) sqlite.Value {
+	switch v := x.(type) {
+	case int8:
+		return sqlite.MakeValueInteger(int64(v))
+	case int16:
+		return sqlite.MakeValueInteger(int64(v))
+	case int32:
+		return sqlite.MakeValueInteger(int64(v))
+	case int64:
+		return sqlite.MakeValueInteger(v)
+	case int:
+		return sqlite.MakeValueInteger(int64(v))
+	case uint8:
+		return sqlite.MakeValueInteger(int64(v))
+	case uint16:
+		return sqlite.MakeValueInteger(int64(v))
+	case uint32:
+		return sqlite.MakeValueInteger(int64(v))
+	case uint64:
+		return sqlite.MakeValueInteger(int64(v))
+	case float32:
+		return sqlite.MakeValueReal(float64(v))
+	case float64:
+		return sqlite.MakeValueReal(v)
+	case string:
+		return sqlite.MakeValueText(v)
+	case []byte:
+		return sqlite.MakeValueBlob(v)
+	case nil:
+		return sqlite.MakeValueNull()
+	default:
+		panic("unknown value type")
+	}
+}
+
+func toError(err sqlite.Error) error {
+	switch err.Tag() {
+	case sqlite.ErrorNoSuchDatabase:
+		return errors.New("no such database")
+	case sqlite.ErrorAccessDenied:
+		return errors.New("access denied")
+	case sqlite.ErrorInvalidConnection:
+		return errors.New("invalid connection")
+	case sqlite.ErrorDatabaseFull:
+		return errors.New("database full")
+	case sqlite.ErrorIo:
+		return errors.New(err.Io())
+	default:
+		panic("unreachable code")
+	}
+}
+
+func toRow(row []sqlite.Value) []any {
+	result := make([]any, len(row))
+	for i, v := range row {
+		switch v.Tag() {
+		case sqlite.ValueInteger:
+			result[i] = v.Integer()
+		case sqlite.ValueReal:
+			result[i] = v.Real()
+		case sqlite.ValueText:
+			result[i] = v.Text()
+		case sqlite.ValueBlob:
+			result[i] = v.Blob()
+		case sqlite.ValueNull:
+			result[i] = nil
+		default:
+			panic("unreachable code")
+		}
+	}
+
+	return result
 }
