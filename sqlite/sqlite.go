@@ -8,7 +8,7 @@ import (
 	"io"
 
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	sqlite "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_sqlite"
+	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_sqlite"
 )
 
 // Open returns a new connection to the database.

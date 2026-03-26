@@ -1,2 +1,3 @@
 .spin
 *.wasm
+spin-dependencies.wit

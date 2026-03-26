@@ -23,9 +23,11 @@ jobs:
 
       - name: Install componentize-go
         # TODO: Switch to an upstream (pre-built) release once new one is
-        # available and includes
+        # available and includes the following PRs:
         # https://github.com/bytecodealliance/componentize-go/pull/35
-        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev fad2c00f
+        # https://github.com/bytecodealliance/componentize-go/pull/36
+        # https://github.com/bytecodealliance/componentize-go/pull/37
+        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev ddea8ada
 
       - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
@@ -33,4 +35,4 @@ jobs:
           version: "v3.6.2"
 
       - name: Run integration tests
-        run: make test-integration
+        run: go test -v -count=1 .
