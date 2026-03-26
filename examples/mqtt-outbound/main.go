@@ -38,7 +38,6 @@ func init() {
 			w.Write([]byte(err.Error()))
 		}
 
-		w.WriteHeader(200)
 		w.Write([]byte("Message successfully published!\n"))
 	})
 }

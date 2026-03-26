@@ -12,7 +12,6 @@ func init() {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("foo", "bar")
 
-		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "== RESPONSE ==")
 		fmt.Fprintln(w, "Hello spinframework!")
 		fmt.Fprintln(w, "Hello again spinframework!")
