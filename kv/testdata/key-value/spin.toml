@@ -14,5 +14,5 @@ component = "hello"
 source = "main.wasm"
 key_value_stores = ["default"]
 [component.hello.build]
-command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
+command = "componentize-go build"
 

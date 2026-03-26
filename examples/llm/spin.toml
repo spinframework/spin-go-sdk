@@ -15,5 +15,5 @@ source = "main.wasm"
 allowed_outbound_hosts = []
 ai_models = ["llama2-chat", "all-minilm-l6-v2"]
 [component.llm.build]
-command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
+command = "componentize-go build"
 watch = ["**/*.go", "go.mod"]

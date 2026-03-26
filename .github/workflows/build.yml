@@ -25,7 +25,7 @@ jobs:
         # TODO: Switch to an upstream (pre-built) release once new one is
         # available and includes
         # https://github.com/bytecodealliance/componentize-go/pull/35
-        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev aa2645d2
+        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev fad2c00f
 
       - name: Install Spin
         uses: fermyon/actions/spin/setup@v1

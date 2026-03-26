@@ -10,9 +10,9 @@ Building this as a WebAssembly module can be done using `spin build`:
 
 ```shell
 $ spin build
-Building component http-to-same-app with `componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build`
+Building component http-to-same-app with `componentize-go --world http-trigger  build`
 Working directory: "./http-to-same-app"
-Building component hello with `componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build`
+Building component hello with `componentize-go --world http-trigger  build`
 Working directory: "./hello"
 Finished building all Spin components
 ```

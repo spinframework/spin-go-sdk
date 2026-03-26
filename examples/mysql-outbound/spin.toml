@@ -15,5 +15,5 @@ environment = { DB_URL = "mysql://spin:spin@127.0.0.1/spin_data" }
 source = "main.wasm"
 allowed_outbound_hosts = ["mysql://127.0.0.1"]
 [component.mysql.build]
-command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
+command = "componentize-go build"
 watch = ["**/*.go", "go.mod"]

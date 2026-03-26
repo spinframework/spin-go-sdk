@@ -15,5 +15,5 @@ environment = { DB_URL = "host=localhost user=postgres dbname=spin_dev" }
 source = "main.wasm"
 allowed_outbound_hosts = ["postgres://localhost"]
 [component.pg-outbound.build]
-command = "componentize-go --world http-trigger --wit-module github.com/spinframework/spin-go-sdk/v3 build"
+command = "componentize-go build"
 watch = ["**/*.go", "go.mod"]
