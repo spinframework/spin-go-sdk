@@ -16,4 +16,5 @@ component = "echo-message"
 [component.echo-message]
 source = "main.wasm"
 [component.echo-message.build]
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+command = "componentize-go --world fermyon:spin/redis-trigger build"
+

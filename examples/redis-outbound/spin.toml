@@ -1,17 +1,20 @@
 spin_manifest_version = 2
 
 [application]
-authors = ["Fermyon Engineering <engineering@fermyon.com>"]
-name = "redis-outbound-example"
+name = "go-redis-outbound-example"
 version = "0.1.0"
+authors = ["Andrew Steurer <94206073+asteurer@users.noreply.github.com>"]
+description = "Using Spin with Redis"
 
 [[trigger.http]]
-route = "/publish"
-component = "outbound-redis"
+route = "/"
+component = "redis-outbound"
 
-[component.outbound-redis]
+[component.redis-outbound]
 source = "main.wasm"
-environment = { REDIS_ADDRESS = "redis://127.0.0.1:6379", REDIS_CHANNEL = "messages" }
-allowed_outbound_hosts = ["redis://127.0.0.1"]
-[component.outbound-redis.build]
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+environment = { REDIS_ADDRESS = "redis://localhost:6379", REDIS_CHANNEL = "messages" }
+allowed_outbound_hosts = ["redis://localhost:6379"]
+
+[component.redis-outbound.build]
+command = "componentize-go build"
+watch = ["**/*.go", "go.mod"]

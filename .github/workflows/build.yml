@@ -13,28 +13,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Go
+      - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.25'
 
-      - name: Setup TinyGo
-        uses: acifani/setup-tinygo@v2
-        with:
-          tinygo-version: '0.35.0'
+      - name: Install latest Rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Spin
+      - name: Install componentize-go
+        # TODO: Switch to an upstream (pre-built) release once new one is
+        # available and includes
+        # https://github.com/bytecodealliance/componentize-go/pull/35
+        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev fad2c00f
+
+      - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
         with:
-          version: "v3.1.2"
-
-      - name: Setup Wasmtime
-        uses: bytecodealliance/actions/wasmtime/setup@v1
-        with:
-          version: "28.0.0"
-
-      - name: Run unit tests
-        run: make test
+          version: "v3.6.2"
 
       - name: Run integration tests
         run: make test-integration

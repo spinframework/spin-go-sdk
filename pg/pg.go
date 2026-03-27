@@ -8,22 +8,28 @@ import (
 	"io"
 	"reflect"
 
-	spindb "github.com/spinframework/spin-go-sdk/v2/internal/db"
+	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	pg "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_postgres"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_rdbms_types"
 )
 
 // Open returns a new connection to the database.
-func Open(address string) *sql.DB {
-	return sql.OpenDB(&connector{address})
+func Open(name string) *sql.DB {
+	return sql.OpenDB(&connector{name: name})
 }
 
 // connector implements driver.Connector.
 type connector struct {
-	address string
+	conn *conn
+	name string
 }
 
 // Connect returns a connection to the database.
 func (d *connector) Connect(_ context.Context) (driver.Conn, error) {
-	return d.Open(d.address)
+	if d.conn != nil {
+		return d.conn, nil
+	}
+	return d.Open(d.name)
 }
 
 // Driver returns the underlying Driver of the Connector.
@@ -32,20 +38,25 @@ func (d *connector) Driver() driver.Driver {
 }
 
 // Open returns a new connection to the database.
-func (d *connector) Open(address string) (driver.Conn, error) {
-	return &conn{address: address}, nil
+func (d *connector) Open(name string) (driver.Conn, error) {
+	results := pg.ConnectionOpen(name)
+	if results.IsErr() {
+		return nil, toError(results.Err())
+	}
+	d.conn = &conn{spinConn: *results.Ok()}
+	return d.conn, nil
 }
 
 // conn implements driver.Conn
 type conn struct {
-	address string
+	spinConn pg.Connection
 }
 
 var _ driver.Conn = (*conn)(nil)
 
 // Prepare returns a prepared statement, bound to this connection.
 func (c *conn) Prepare(query string) (driver.Stmt, error) {
-	return &stmt{c: c, query: query}, nil
+	return &stmt{conn: c, query: query}, nil
 }
 
 func (c *conn) Close() error {
@@ -57,7 +68,7 @@ func (c *conn) Begin() (driver.Tx, error) {
 }
 
 type stmt struct {
-	c     *conn
+	conn  *conn
 	query string
 }
 
@@ -77,22 +88,53 @@ func (s *stmt) NumInput() int {
 
 // Query executes a query that may return rows, such as a SELECT.
 func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
-	params := make([]any, len(args))
-	for i := range args {
-		params[i] = args[i]
+	rdbmsParams := make([]pg.ParameterValue, len(args))
+	for i, v := range args {
+		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
-	return query(s.c.address, s.query, params)
+
+	results := s.conn.spinConn.Query(s.query, rdbmsParams)
+	if results.IsErr() {
+		return nil, toError(results.Err())
+	}
+
+	rowLen := len(results.Ok().Rows)
+	allRows := make([][]any, rowLen)
+	for rowNum, row := range results.Ok().Rows {
+		allRows[rowNum] = toRow(row)
+	}
+
+	cols := results.Ok().Columns
+	colNames := make([]string, len(cols))
+	colTypes := make([]uint8, len(cols))
+	for i, c := range cols {
+		colNames[i] = c.Name
+		colTypes[i] = uint8(c.DataType)
+	}
+
+	rows := &rows{
+		columns:    colNames,
+		columnType: colTypes,
+		rows:       allRows,
+		len:        int(rowLen),
+	}
+	return rows, nil
 }
 
 // Exec executes a query that doesn't return rows, such as an INSERT or
 // UPDATE.
 func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
-	params := make([]any, len(args))
-	for i := range args {
-		params[i] = args[i]
+	rdbmsParams := make([]pg.ParameterValue, len(args))
+	for i, v := range args {
+		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
-	n, err := execute(s.c.address, s.query, params)
-	return &result{rowsAffected: int64(n)}, err
+
+	queryResult := s.conn.spinConn.Execute(s.query, rdbmsParams)
+	if queryResult.IsErr() {
+		return &result{}, toError(queryResult.Err())
+	}
+
+	return &result{}, nil
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
@@ -172,4 +214,127 @@ func (r *rows) NextResultSet() error {
 // ColumnTypeScanType return the value type that can be used to scan types into.
 func (r *rows) ColumnTypeScanType(index int) reflect.Type {
 	return colTypeToReflectType(r.columnType[index])
+}
+
+func toRdbmsParameterValue(x any) pg.ParameterValue {
+	switch v := x.(type) {
+	case bool:
+		return rdbmstypes.MakeParameterValueBoolean(v)
+	case int8:
+		return rdbmstypes.MakeParameterValueInt8(v)
+	case int16:
+		return rdbmstypes.MakeParameterValueInt16(v)
+	case int32:
+		return rdbmstypes.MakeParameterValueInt32(v)
+	case int64:
+		return rdbmstypes.MakeParameterValueInt64(v)
+	case int:
+		return rdbmstypes.MakeParameterValueInt64(int64(v))
+	case uint8:
+		return rdbmstypes.MakeParameterValueUint8(v)
+	case uint16:
+		return rdbmstypes.MakeParameterValueUint16(v)
+	case uint32:
+		return rdbmstypes.MakeParameterValueUint32(v)
+	case uint64:
+		return rdbmstypes.MakeParameterValueUint64(v)
+	case float32:
+		return rdbmstypes.MakeParameterValueFloating32(v)
+	case float64:
+		return rdbmstypes.MakeParameterValueFloating64(v)
+	case string:
+		return rdbmstypes.MakeParameterValueStr(v)
+	case []byte:
+		return rdbmstypes.MakeParameterValueBinary(v)
+	case nil:
+		return rdbmstypes.MakeParameterValueDbNull()
+	default:
+		panic("unknown value type")
+	}
+}
+
+func toError(err pg.Error) error {
+	switch err.Tag() {
+	case rdbmstypes.ErrorBadParameter:
+		return errors.New(err.BadParameter())
+	case rdbmstypes.ErrorConnectionFailed:
+		return errors.New(err.ConnectionFailed())
+	case rdbmstypes.ErrorQueryFailed:
+		return errors.New(err.QueryFailed())
+	case rdbmstypes.ErrorValueConversionFailed:
+		return errors.New(err.ValueConversionFailed())
+	default:
+		// TODO: not sure if using "Other" as the default is appropriate
+		return errors.New(err.Other())
+	}
+}
+
+func toRow(row []rdbmstypes.DbValue) []any {
+	result := make([]any, len(row))
+	for i, v := range row {
+		switch v.Tag() {
+		case rdbmstypes.DbValueBoolean:
+			result[i] = v.Boolean()
+		case rdbmstypes.DbValueInt8:
+			result[i] = v.Int8()
+		case rdbmstypes.DbValueInt16:
+			result[i] = v.Int16()
+		case rdbmstypes.DbValueInt32:
+			result[i] = v.Int32()
+		case rdbmstypes.DbValueInt64:
+			result[i] = v.Int64()
+		case rdbmstypes.DbValueUint8:
+			result[i] = v.Uint8()
+		case rdbmstypes.DbValueUint16:
+			result[i] = v.Uint16()
+		case rdbmstypes.DbValueUint32:
+			result[i] = v.Uint32()
+		case rdbmstypes.DbValueUint64:
+			result[i] = v.Uint64()
+		case rdbmstypes.DbValueFloating32:
+			result[i] = v.Floating32()
+		case rdbmstypes.DbValueFloating64:
+			result[i] = v.Floating64()
+		case rdbmstypes.DbValueStr:
+			result[i] = v.Str()
+		case rdbmstypes.DbValueBinary:
+			result[i] = v.Binary()
+		case rdbmstypes.DbValueDbNull:
+			result[i] = nil
+		default:
+			panic("unknown value type")
+		}
+	}
+
+	return result
+}
+
+func colTypeToReflectType(typ uint8) reflect.Type {
+	switch typ {
+	case uint8(rdbmstypes.DbDataTypeBoolean):
+		return reflect.TypeOf(false)
+	case uint8(rdbmstypes.DbDataTypeInt8):
+		return reflect.TypeOf(int8(0))
+	case uint8(rdbmstypes.DbDataTypeInt16):
+		return reflect.TypeOf(int16(0))
+	case uint8(rdbmstypes.DbDataTypeInt32):
+		return reflect.TypeOf(int32(0))
+	case uint8(rdbmstypes.DbDataTypeInt64):
+		return reflect.TypeOf(int64(0))
+	case uint8(rdbmstypes.DbDataTypeUint8):
+		return reflect.TypeOf(uint8(0))
+	case uint8(rdbmstypes.DbDataTypeUint16):
+		return reflect.TypeOf(uint16(0))
+	case uint8(rdbmstypes.DbDataTypeUint32):
+		return reflect.TypeOf(uint32(0))
+	case uint8(rdbmstypes.DbDataTypeUint64):
+		return reflect.TypeOf(uint64(0))
+	case uint8(rdbmstypes.DbDataTypeStr):
+		return reflect.TypeOf("")
+	case uint8(rdbmstypes.DbDataTypeBinary):
+		return reflect.TypeOf(new([]byte))
+	case uint8(rdbmstypes.DbDataTypeOther):
+		return reflect.TypeOf(new(any)).Elem()
+	}
+	panic("invalid db column type of " + string(typ))
 }

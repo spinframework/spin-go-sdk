@@ -1,0 +1,2 @@
+worlds = [ "fermyon:spin/http-trigger@3.0.0" ]
+wit_paths = [ "wit" ]

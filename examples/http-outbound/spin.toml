@@ -2,7 +2,7 @@ spin_manifest_version = 2
 
 [application]
 authors = ["Fermyon Engineering <engineering@fermyon.com>"]
-description = "A simple Spin application written in (Tiny)Go that performs outbound HTTP requests."
+description = "A simple Spin application written in Go that performs outbound HTTP requests."
 name = "http-outbound-example"
 version = "1.0.0"
 
@@ -22,7 +22,7 @@ allowed_outbound_hosts = [
 ]
 [component.hello.build]
 workdir = "hello"
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+command = "componentize-go build"
 
 [component.http-to-same-app]
 source = "http-to-same-app/main.wasm"
@@ -30,4 +30,5 @@ source = "http-to-same-app/main.wasm"
 allowed_outbound_hosts = ["http://self"]
 [component.http-to-same-app.build]
 workdir = "http-to-same-app"
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+command = "componentize-go build"
+

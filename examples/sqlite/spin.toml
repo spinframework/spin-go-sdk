@@ -15,5 +15,5 @@ source = "main.wasm"
 allowed_outbound_hosts = []
 sqlite_databases = ["default"]
 [component.sqlite.build]
-command = "tinygo build -target=wasip1 -gc=leaking -buildmode=c-shared -no-debug -o main.wasm ."
+command = "componentize-go build"
 watch = ["**/*.go", "go.mod"]

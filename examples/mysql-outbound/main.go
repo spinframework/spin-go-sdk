@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
-	"github.com/spinframework/spin-go-sdk/v2/mysql"
+	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
+	"github.com/spinframework/spin-go-sdk/v3/mysql"
 )
 
 type Pet struct {
@@ -27,8 +27,12 @@ func init() {
 		db := mysql.Open(addr)
 		defer db.Close()
 
-		_, err := db.Query("REPLACE INTO pets VALUES (?, 'Maya', ?, ?);", 4, "bananas", true)
-		if err != nil {
+		if _, err := db.Query("REPLACE INTO pets VALUES (?, 'Maya', ?, ?);", 4, "bananas", true); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if _, err := db.Exec("INSERT INTO pets VALUES (?, ?, ?, ?)", 5, "Copper", "Foxes", false); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

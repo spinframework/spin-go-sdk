@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v2/http"
-	"github.com/spinframework/spin-go-sdk/v2/pg"
+	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
+	"github.com/spinframework/spin-go-sdk/v3/pg"
 )
 
 type Pet struct {

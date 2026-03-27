@@ -1,0 +1,15 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    container_name: broker
+    ports:
+      - "1883:1883"
+    command: mosquitto -c /mosquitto-no-auth.conf
+
+  subscriber:
+    image: eclipse-mosquitto:2.0.22
+    container_name: subscriber
+    depends_on:
+      - mosquitto
+    command: mosquitto_sub -h mosquitto -t '#' -v
+    restart: "no" # Clean up container when stopped

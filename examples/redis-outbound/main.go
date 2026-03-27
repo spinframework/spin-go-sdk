@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strconv"
 
-	spin_http "github.com/spinframework/spin-go-sdk/v2/http"
-	"github.com/spinframework/spin-go-sdk/v2/redis"
+	spin_http "github.com/spinframework/spin-go-sdk/v3/http"
+	"github.com/spinframework/spin-go-sdk/v3/redis"
 )
 
 func init() {
@@ -26,9 +26,13 @@ func init() {
 		channel := os.Getenv("REDIS_CHANNEL")
 
 		// payload is the data publish to the redis channel.
-		payload := []byte(`Hello redis from tinygo!`)
+		payload := []byte(`Hello redis from Go!`)
 
-		rdb := redis.NewClient(addr)
+		rdb, err := redis.NewClient(addr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		if err := rdb.Publish(channel, payload); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +70,7 @@ func init() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
 			w.Write([]byte("deleted keys num: "))
-			w.Write([]byte(strconv.FormatInt(payload, 10)))
+			w.Write([]byte(strconv.FormatInt(int64(payload), 10)))
 			w.Write([]byte("\n"))
 		}
 
@@ -140,7 +144,9 @@ func init() {
 				Kind: redis.ResultKindBinary,
 				Val:  []byte("hello world"),
 			}}) {
+
 			http.Error(w, "unexpected GET result", http.StatusInternalServerError)
+			fmt.Println()
 			return
 		}
 	})
