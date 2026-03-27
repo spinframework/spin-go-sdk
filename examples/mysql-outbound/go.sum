@@ -1,6 +1,2 @@
-github.com/bytecodealliance/wit-bindgen/crates/go/src/package v0.51.0 h1:fbwpkAmU6eZnDQpBHrdQwPXi5atE0KSfjU8zwFkClnw=
-github.com/bytecodealliance/wit-bindgen/crates/go/src/package v0.51.0/go.mod h1:MUXxhOBN0hAtqHjc9/9XAEiXcGhcwYL6PeDXkKwVZN0=
-github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
-github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 go.bytecodealliance.org/pkg v0.2.1 h1:TdRagooIcCW3UmlKqVO4cDR3GNDyfDnbiBzGI6TOvyg=
 go.bytecodealliance.org/pkg v0.2.1/go.mod h1:OjA+V8g3uUFixeCKFfamm6sYhTJdg8fvwEdJ2GO0GSk=

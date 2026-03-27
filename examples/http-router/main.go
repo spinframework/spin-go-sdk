@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/julienschmidt/httprouter"
 	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
 )
 
 func init() {
 	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
-		router := spinhttp.NewRouter()
+		router := httprouter.New()
 		router.GET("/hello/:name", Hello)
 		router.GET("/this/will/*catchAll", CatchAll)
 
@@ -17,11 +18,11 @@ func init() {
 	})
 }
 
-func Hello(w http.ResponseWriter, _ *http.Request, ps spinhttp.Params) {
+func Hello(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
 }
 
-func CatchAll(w http.ResponseWriter, _ *http.Request, ps spinhttp.Params) {
+func CatchAll(w http.ResponseWriter, _ *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, "catch all: %s!\n", ps.ByName("catchAll"))
 }
 

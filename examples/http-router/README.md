@@ -1,4 +1,6 @@
-# Spin component in Go using the Spin router
+# Spin component in Go using a router library
+
+Example using the router from github.com/julienschmidt/httprouter.
 
 ```shell
 $ spin build --up
