@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"os"
 
-	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/export_wasi_http_0_2_0_incoming_handler"
-	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
-	_ "github.com/spinframework/spin-go-sdk/v3/internal/wit_exports"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_http_trigger_3_0_0/export_wasi_http_0_2_0_incoming_handler"
+	_ "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_http_trigger_3_0_0/wit_exports"
+	types "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
 )
 
 func init() {

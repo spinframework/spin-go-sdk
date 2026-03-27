@@ -91,6 +91,30 @@ func buildApp(t *testing.T, dir string) {
 	}
 }
 
+func TestHTTPp3RawTrigger(t *testing.T) {
+	spin := startSpin(t, "examples/http-p3-raw")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url+"/hello")
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "hello, world!"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+}
+
 func TestHTTPTrigger(t *testing.T) {
 	spin := startSpin(t, "http/testdata/http")
 	defer spin.cancel()

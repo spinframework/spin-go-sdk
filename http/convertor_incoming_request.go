@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
+	types "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
 )
 
 type IncomingRequest = types.IncomingRequest

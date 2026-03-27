@@ -3,7 +3,7 @@ package kv
 import (
 	"fmt"
 
-	keyvalue "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_key_value"
+	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_key_value"
 )
 
 type Store struct {

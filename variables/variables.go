@@ -3,7 +3,7 @@ package variables
 import (
 	"fmt"
 
-	variables "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_variables"
+	variables "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_variables"
 )
 
 // Get an application variable value for the current component.
