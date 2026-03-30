@@ -21,19 +21,46 @@
 //     spin:postgres@3.0.0
 //     wasi:config@0.2.0-draft-2024-09-27
 //     fermyon:spin@3.0.0
+//     spin:key-value@3.0.0
+//     spin:mqtt@3.0.0
+//     spin:postgres@4.0.0
+//     spin:postgres@4.1.0
+//     spin:postgres@4.2.0
+//     spin:redis@3.0.0
+//     spin:sqlite@3.0.0
+//     spin:sqlite@3.1.0
+//     wasi:io@0.2.3
+//     wasi:clocks@0.2.3
+//     wasi:filesystem@0.2.3
+//     wasi:sockets@0.2.3
+//     wasi:random@0.2.3
+//     wasi:cli@0.2.3
+//     wasi:http@0.2.3
+//     spin:up@3.2.0
+//     spin:up@3.4.0
+//     wasi:clocks@0.3.0-rc-2026-03-15
+//     wasi:random@0.3.0-rc-2026-03-15
+//     wasi:filesystem@0.3.0-rc-2026-03-15
+//     wasi:sockets@0.3.0-rc-2026-03-15
+//     wasi:cli@0.3.0-rc-2026-03-15
+//     wasi:http@0.3.0-rc-2026-03-15
+//     wasi:io@0.2.6
+//     wasi:clocks@0.2.6
+//     wasi:filesystem@0.2.6
+//     wasi:sockets@0.2.6
+//     wasi:random@0.2.6
+//     wasi:cli@0.2.6
+//     wasi:otel@0.2.0-rc.2
+//     wasi:http@0.2.6
+//     spin:variables@3.0.0
+//     spin:up@4.0.0
 //     wasi:io@0.2.0-rc-2023-11-10
 //     wasi:clocks@0.2.0-rc-2023-11-10
 //     wasi:filesystem@0.2.0-rc-2023-11-10
 //     wasi:sockets@0.2.0-rc-2023-11-10
 //     wasi:random@0.2.0-rc-2023-11-10
 //     wasi:cli@0.2.0-rc-2023-11-10
-//     wasi:clocks@0.3.0-rc-2026-03-15
-//     wasi:filesystem@0.3.0-rc-2026-03-15
-//     wasi:sockets@0.3.0-rc-2026-03-15
-//     wasi:random@0.3.0-rc-2026-03-15
-//     wasi:cli@0.3.0-rc-2026-03-15
 //     wasi:http@0.2.0-rc-2023-11-10
-//     wasi:http@0.3.0-rc-2026-03-15
 //     componentize-go:union
 
 package wasi_cli_0_3_0_rc_2026_03_15_stdout
@@ -44,44 +71,6 @@ import (
 	"runtime"
 	"unsafe"
 )
-
-//go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [stream-new-0]write-via-stream
-func wasm_stream_new_u8() uint64
-
-//go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [async-lower][stream-read-0]write-via-stream
-func wasm_stream_read_u8(handle int32, item unsafe.Pointer, count uint32) uint32
-
-//go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [async-lower][stream-write-0]write-via-stream
-func wasm_stream_write_u8(handle int32, item unsafe.Pointer, count uint32) uint32
-
-//go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [stream-drop-readable-0]write-via-stream
-func wasm_stream_drop_readable_u8(handle int32)
-
-//go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [stream-drop-writable-0]write-via-stream
-func wasm_stream_drop_writable_u8(handle int32)
-
-var wasm_stream_vtable_u8 = witTypes.StreamVtable[uint8]{
-	1,
-	1,
-	wasm_stream_read_u8,
-	wasm_stream_write_u8,
-	nil,
-	nil,
-	wasm_stream_drop_readable_u8,
-	wasm_stream_drop_writable_u8,
-	nil,
-	nil,
-}
-
-func MakeStreamU8() (*witTypes.StreamWriter[uint8], *witTypes.StreamReader[uint8]) {
-	pair := wasm_stream_new_u8()
-	return witTypes.MakeStreamWriter[uint8](&wasm_stream_vtable_u8, int32(pair>>32)),
-		witTypes.MakeStreamReader[uint8](&wasm_stream_vtable_u8, int32(pair&0xFFFFFFFF))
-}
-
-func LiftStreamU8(handle int32) *witTypes.StreamReader[uint8] {
-	return witTypes.MakeStreamReader[uint8](&wasm_stream_vtable_u8, handle)
-}
 
 //go:wasmimport wasi:cli/stdout@0.3.0-rc-2026-03-15 [future-new-1]write-via-stream
 func wasm_future_new_result_unit_wasi_cli_0_3_0_rc_2026_03_15_types_error_code() uint64
