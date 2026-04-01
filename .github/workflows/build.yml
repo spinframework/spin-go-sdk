@@ -24,6 +24,7 @@ jobs:
         # https://github.com/bytecodealliance/componentize-go/pull/35
         # https://github.com/bytecodealliance/componentize-go/pull/36
         # https://github.com/bytecodealliance/componentize-go/pull/37
+        # https://github.com/bytecodealliance/componentize-go/pull/38
         run: |
           curl -LO https://github.com/dicej/componentize-go/releases/download/canary/componentize-go-linux-amd64.tar.gz
           tar xf componentize-go-linux-amd64.tar.gz
