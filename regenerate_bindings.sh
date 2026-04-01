@@ -1,12 +1,7 @@
 #!/bin/bash
 
 # Remove any previously-generated import bindings:
-find $(pwd)/imports/ \
-  -mindepth 1 \
-  -maxdepth 1 \
-  -type d \
-  ! -name "deps" \
-  -exec rm -rf {} +
+rm -r imports
 
 # Generate bindings for all supported worlds.  We'll only use the imports from
 # these bindings, discarding the exports.
@@ -23,6 +18,8 @@ componentize-go \
   -o imports \
   --pkg-name github.com/spinframework/spin-go-sdk/v3/imports \
   --include-versions
+
+rm -r imports/wit_exports
 
 # For each supported world, generate bindings specific to that world.  We'll use
 # only the exports from these bindings, defering to the imports we generated
