@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	outgoinghandler "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_outgoing_handler"
-	types "github.com/spinframework/spin-go-sdk/v3/internal/wasi_http_0_2_0_types"
+	outgoinghandler "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_outgoing_handler"
+	types "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

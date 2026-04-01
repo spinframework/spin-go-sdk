@@ -1,0 +1,17 @@
+spin_manifest_version = 2
+
+[application]
+authors = ["Joel Dice <joel.dice@akamai.com>"]
+description = "Example of using WASIp3 bindings directly to implement an HTTP service in Go."
+name = "http-p3-raw"
+version = "1.0.0"
+
+[[trigger.http]]
+route = "/*"
+component = "http"
+
+[component.http]
+source = "main.wasm"
+allowed_outbound_hosts = ["https://*"]
+[component.http.build]
+command = "componentize-go -w wasi:http/service@0.3.0-rc-2026-03-15 -w platform build"

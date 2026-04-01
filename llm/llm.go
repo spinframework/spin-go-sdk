@@ -3,7 +3,7 @@ package llm
 import (
 	"fmt"
 
-	llm "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_llm"
+	llm "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_llm"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

@@ -9,8 +9,8 @@ import (
 	"reflect"
 
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	pg "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_postgres"
-	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_rdbms_types"
+	pg "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_postgres"
+	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_rdbms_types"
 )
 
 // Open returns a new connection to the database.

@@ -6,10 +6,10 @@ package redis
 import (
 	"fmt"
 
-	incominghandler "github.com/spinframework/spin-go-sdk/v3/internal/export_fermyon_spin_inbound_redis"
-	redis "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_2_0_0_redis"
-	redis_types "github.com/spinframework/spin-go-sdk/v3/internal/fermyon_spin_redis_types"
-	_ "github.com/spinframework/spin-go-sdk/v3/internal/wit_exports"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_redis_trigger/export_fermyon_spin_inbound_redis"
+	_ "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_redis_trigger/wit_exports"
+	redis "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_redis"
+	redis_types "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_redis_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
