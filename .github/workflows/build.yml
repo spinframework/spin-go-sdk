@@ -13,37 +13,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.25'
-
-      # TODO: Remove this once we're on stable releases of `componentize-go` and
-      # `spin`:
-      - name: Install latest Rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-wasip2
-
       - name: Install componentize-go
         # TODO: Switch to an upstream (pre-built) release once new one is
         # available and includes the following PRs:
         # https://github.com/bytecodealliance/componentize-go/pull/35
         # https://github.com/bytecodealliance/componentize-go/pull/36
         # https://github.com/bytecodealliance/componentize-go/pull/37
-        run: cargo install --locked --git https://github.com/dicej/componentize-go --rev ddea8ada
-        # run: |
-        #   curl -LO https://github.com/bytecodealliance/componentize-go/releases/download/v0.3.0/componentize-go-linux-amd64.tar.gz
-        #   echo "<insert hash here>  componentize-go-linux-amd64.tar.gz" | sha256sum --check
-        #   tar -xf componentize-go-linux-amd64.tar.gz
-        #   chmod +x componentize-go
-        #   mkdir -p $HOME/.local/bin
-        #   mv componentize-go $HOME/.local/bin/componentize-go
-        #   echo "$HOME/.local/bin" >> $GITHUB_PATH
+        run: |
+          curl -LO https://github.com/dicej/componentize-go/releases/download/canary/componentize-go-linux-amd64.tar.gz
+          tar xf componentize-go-linux-amd64.tar.gz
+          chmod +x componentize-go
+          pwd >> $GITHUB_PATH
 
       - name: Install Spin
-        # TODO: Switch to Spin 4.0 when it's available        
-        run: cargo install --locked --git https://github.com/spinframework/spin spin-cli --rev 4a29a18f
+        # TODO: Switch to Spin 4.0 when it's available
+        run: |
+          curl -OL https://github.com/spinframework/spin/releases/download/canary/spin-canary-linux-amd64.tar.gz
+          tar xf spin-canary-linux-amd64.tar.gz
+          pwd >> $GITHUB_PATH          
         # uses: fermyon/actions/spin/setup@v1
         # with:
         #   version: "v4.0.0"
