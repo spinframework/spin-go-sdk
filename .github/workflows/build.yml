@@ -26,14 +26,10 @@ jobs:
           pwd >> $GITHUB_PATH
 
       - name: Install Spin
-        # TODO: Switch to Spin 4.0 when it's available
-        run: |
-          curl -OL https://github.com/spinframework/spin/releases/download/canary/spin-canary-linux-amd64.tar.gz
-          tar xf spin-canary-linux-amd64.tar.gz
-          pwd >> $GITHUB_PATH          
-        # uses: fermyon/actions/spin/setup@v1
-        # with:
-        #   version: "v4.0.0"
+        uses: fermyon/actions/spin/setup@v1
+        with:
+          # TODO: Switch to Spin 4.0 when it's available
+           version: "canary"
 
       - name: Run integration tests
         run: go test -v -count=1 .
