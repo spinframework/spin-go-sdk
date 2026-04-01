@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
       - name: Install componentize-go
         # TODO: Switch to an upstream (pre-built) release once new one is
         # available and includes the following PRs:
