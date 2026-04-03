@@ -19,14 +19,9 @@ jobs:
           go-version: '1.25'
 
       - name: Install componentize-go
-        # TODO: Switch to an upstream (pre-built) release once new one is
-        # available and includes the following PRs:
-        # https://github.com/bytecodealliance/componentize-go/pull/35
-        # https://github.com/bytecodealliance/componentize-go/pull/36
-        # https://github.com/bytecodealliance/componentize-go/pull/37
-        # https://github.com/bytecodealliance/componentize-go/pull/38
+        # TODO: Switch to an upstream (pre-built) release once v0.3.0 is released
         run: |
-          curl -LO https://github.com/dicej/componentize-go/releases/download/canary/componentize-go-linux-amd64.tar.gz
+          curl -LO https://github.com/bytecodealliance/componentize-go/releases/download/canary/componentize-go-linux-amd64.tar.gz
           tar xf componentize-go-linux-amd64.tar.gz
           chmod +x componentize-go
           pwd >> $GITHUB_PATH
@@ -35,7 +30,7 @@ jobs:
         uses: fermyon/actions/spin/setup@v1
         with:
           # TODO: Switch to Spin 4.0 when it's available
-           version: "canary"
+          version: "canary"
 
       - name: Run integration tests
         run: go test -v -count=1 .
