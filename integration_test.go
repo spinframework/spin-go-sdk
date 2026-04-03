@@ -116,7 +116,7 @@ func TestHTTPp3RawTrigger(t *testing.T) {
 }
 
 func TestHTTPTrigger(t *testing.T) {
-	spin := startSpin(t, "http/testdata/http")
+	spin := startSpin(t, "testdata/http")
 	defer spin.cancel()
 
 	resp := retryGet(t, spin.url+"/hello")
@@ -145,7 +145,7 @@ func TestHTTPTrigger(t *testing.T) {
 }
 
 func TestKeyValue(t *testing.T) {
-	spin := startSpin(t, "kv/testdata/key-value")
+	spin := startSpin(t, "testdata/key-value")
 	defer spin.cancel()
 
 	resp := retryGet(t, spin.url+"/hello")
@@ -169,7 +169,7 @@ func TestKeyValue(t *testing.T) {
 }
 
 func TestVariables(t *testing.T) {
-	spin := startSpin(t, "variables/testdata/variables")
+	spin := startSpin(t, "testdata/variables")
 	defer spin.cancel()
 
 	resp := retryGet(t, spin.url)
