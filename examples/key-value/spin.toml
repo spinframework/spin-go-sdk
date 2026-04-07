@@ -14,4 +14,4 @@ component = "hello"
 source = "main.wasm"
 key_value_stores = ["default"]
 [component.hello.build]
-command = "componentize-go build"
+command = "go tool componentize-go build"

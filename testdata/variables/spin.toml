@@ -19,5 +19,5 @@ source = "main.wasm"
 message = "I'm a {{object}}"
 
 [component.variables.build]
-command = "componentize-go build"
+command = "go tool componentize-go build"
 

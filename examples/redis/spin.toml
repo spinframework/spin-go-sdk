@@ -16,5 +16,5 @@ component = "echo-message"
 [component.echo-message]
 source = "main.wasm"
 [component.echo-message.build]
-command = "componentize-go --world fermyon:spin/redis-trigger build"
+command = "go tool componentize-go --world fermyon:spin/redis-trigger build"
 

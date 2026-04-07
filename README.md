@@ -2,8 +2,6 @@
 
 This is an SDK for developing [Spin](https://github.com/spinframework/spin) applications using the Go programming language.
 
-> Note: This SDK temporarily relies on an unreleased version of [componentize-go](https://github.com/bytecodealliance/componentize-go). For the time being, please install the [canary build](https://github.com/bytecodealliance/componentize-go/releases/tag/canary).
-
 ## Example
 
 ```go

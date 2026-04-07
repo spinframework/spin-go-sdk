@@ -16,5 +16,5 @@ environment = { REDIS_ADDRESS = "redis://localhost:6379", REDIS_CHANNEL = "messa
 allowed_outbound_hosts = ["redis://localhost:6379"]
 
 [component.redis-outbound.build]
-command = "componentize-go -w wasi:http/service@0.3.0-rc-2026-03-15 -w platform build"
+command = "go tool componentize-go -w wasi:http/service@0.3.0-rc-2026-03-15 -w platform build"
 watch = ["**/*.go", "go.mod"]

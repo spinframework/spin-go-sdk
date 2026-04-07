@@ -15,5 +15,5 @@ source = "main.wasm"
 allowed_outbound_hosts = []
 sqlite_databases = ["default"]
 [component.sqlite.build]
-command = "componentize-go build"
+command = "go tool componentize-go build"
 watch = ["**/*.go", "go.mod"]

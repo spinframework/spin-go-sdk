@@ -15,5 +15,5 @@ source = "main.wasm"
 allowed_outbound_hosts = []
 ai_models = ["llama2-chat", "all-minilm-l6-v2"]
 [component.llm.build]
-command = "componentize-go build"
+command = "go tool componentize-go build"
 watch = ["**/*.go", "go.mod"]
