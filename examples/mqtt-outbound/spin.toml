@@ -16,5 +16,5 @@ source = "main.wasm"
 environment = { MQTT_ADDRESS = "mqtt://127.0.0.1:1883?client_id=client001", MQTT_USERNAME = "user", MQTT_PASSWORD = "password", MQTT_KEEP_ALIVE_INTERVAL = "30", MQTT_TOPIC = "telemetry" }
 allowed_outbound_hosts = ["mqtt://127.0.0.1:1883"]
 [component.mqtt-outbound.build]
-command = "componentize-go build"
+command = "go tool componentize-go build"
 watch = ["**/*.go", "go.mod"]

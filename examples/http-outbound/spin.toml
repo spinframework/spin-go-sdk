@@ -22,7 +22,7 @@ allowed_outbound_hosts = [
 ]
 [component.hello.build]
 workdir = "hello"
-command = "componentize-go build"
+command = "go tool componentize-go build"
 
 [component.http-to-same-app]
 source = "http-to-same-app/main.wasm"
@@ -30,5 +30,5 @@ source = "http-to-same-app/main.wasm"
 allowed_outbound_hosts = ["http://self"]
 [component.http-to-same-app.build]
 workdir = "http-to-same-app"
-command = "componentize-go build"
+command = "go tool componentize-go build"
 
