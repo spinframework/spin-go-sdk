@@ -5,9 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	outgoinghandler "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_outgoing_handler"
-	types "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
-	wit "go.bytecodealliance.org/pkg/wit/types"
+	client "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_client"
+	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 )
 
 // NewTransport returns http.RoundTripper backed by Spin SDK
@@ -31,48 +30,34 @@ func NewClient() *http.Client {
 }
 
 func Send(req *http.Request) (*http.Response, error) {
-	or, err := NewOutgoingHttpRequest(req)
+	request, err := newOutgoingHttpRequest(req)
 	if err != nil {
 		return nil, err
 	}
+	defer request.Drop()
 
-	result := outgoinghandler.Handle(&or, wit.None[*types.RequestOptions]())
+	result := client.Send(request)
 	if result.IsErr() {
-		return nil, fmt.Errorf("TODO: convert to readable error")
+		return nil, fmt.Errorf("error sending request: %v", errorString(result.Err()))
 	}
 
-	if result.IsErr() {
-		return nil, fmt.Errorf("error is %v", result.Err())
-	}
+	response := result.Ok()
+	status := response.GetStatusCode()
 
-	okresult := result.Ok()
+	headerResource := response.GetHeaders()
+	headers := headerResource.CopyAll()
+	headerResource.Drop()
 
-	//wait until resp is returned
-	okresult.Subscribe().Block()
-
-	incomingResp := okresult.Get()
-	if incomingResp.IsNone() {
-		return nil, fmt.Errorf("incoming resp is None")
-	} else if incomingResp.Some().IsErr() {
-		return nil, fmt.Errorf("error is %v", incomingResp.Some().Err())
-	} else if incomingResp.Some().Ok().IsErr() {
-		return nil, fmt.Errorf("error is %v", incomingResp.Some().Ok().Err())
-	}
-
-	okresp := incomingResp.Some().Ok().Ok()
-	var body io.ReadCloser
-	if consumeResult := okresp.Consume(); consumeResult.IsErr() {
-		return nil, fmt.Errorf("failed to consume incoming request %s", consumeResult.Err())
-	} else if streamResult := consumeResult.Ok().Stream(); streamResult.IsErr() {
-		return nil, fmt.Errorf("failed to consume incoming requests's stream %s", streamResult.Err())
-	} else {
-		body = NewReadCloser(*streamResult.Ok())
-	}
+	rx, trailers := ResponseConsumeBody(response, unitFuture())
+	body := newReader(rx, trailers)
 
 	resp := &http.Response{
-		StatusCode: int(okresp.Status()),
+		StatusCode: int(status),
 		Body:       body,
+		Header:     http.Header{},
 	}
+
+	toHttpHeader(headers, &resp.Header)
 
 	return resp, nil
 }
