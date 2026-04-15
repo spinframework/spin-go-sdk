@@ -3,154 +3,108 @@ package http
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
-	types "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
-	streams "github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_0_streams"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
-var _ http.ResponseWriter = &responseOutparamWriter{}
+// Assert that `responseWriter` implements the required interface
+var _ http.ResponseWriter = &responseWriter{}
 
-type responseOutparamWriter struct {
-	// wasi response outparam is set at the end of http_trigger_handle
-	outparam types.ResponseOutparam
-	// wasi response
-	response types.OutgoingResponse
-	// wasi http headers
-	wasiHeaders types.Fields
-	// go httpHeaders are reconciled on call to WriteHeader, Flush or at the end of http_trigger_handle
-	httpHeaders http.Header
-	// wasi response body is set on first write because it can only be called once
-	body *types.OutgoingBody
-	// wasi response stream is set on first write because it can only be called once
-	stream *streams.OutputStream
-
-	statuscode int
-
-	// this is to track whether a new response object has been created or not.
-	// if the user don't explicitly call Write(buf []byte) function, we reconcile
-	// implicitly with default status code 200 and response body OK
-	reconciled bool
+type responseWriter struct {
+	// channel to which the response will be sent
+	channel chan wit.Result[*wasi.Response, wasi.ErrorCode]
+	// stream to which the response body is being written
+	stream *wit.StreamWriter[uint8]
+	// future which resolves to an error if there is a problem delivering the response body
+	streamResult *wit.FutureReader[wit.Result[wit.Unit, wasi.ErrorCode]]
+	// headers to send
+	headers http.Header
+	// status code to send
+	statusCode int
 }
 
-func (row *responseOutparamWriter) Header() http.Header {
-	return row.httpHeaders
+func (self *responseWriter) Header() http.Header {
+	return self.headers
 }
 
-func (row *responseOutparamWriter) Write(buf []byte) (int, error) {
-	err := row.reconcile()
+func (self *responseWriter) Write(buf []byte) (int, error) {
+	err := self.send()
 	if err != nil {
 		return 0, err
 	}
 
-	// acquire the response body's resource handle on first call to write
-	if row.body == nil {
-		bodyResult := row.response.Body()
-		if bodyResult.IsErr() {
-			return 0, fmt.Errorf("failed to acquire resource handle to response body: %s", bodyResult.Err())
-		}
-		row.body = bodyResult.Ok()
+	count := self.stream.Write(buf)
 
-		writeResult := row.body.Write()
-		if writeResult.IsErr() {
-			return 0, fmt.Errorf("failed to acquire resource handle for response body's stream: %s", writeResult.Err())
-		}
-		row.stream = writeResult.Ok()
-
-		result := wit.Ok[*types.OutgoingResponse, types.ErrorCode](&row.response)
-
-		types.ResponseOutparamSet(&row.outparam, result)
+	if count == 0 && self.stream.ReaderDropped() {
+		return 0, self.takeError()
 	}
 
-	// //TODO: determine if we need to do these to fulfill the ResponseWriter contract
-	// // call WriteHeader(http.StatusOK) if it hasn't been called yet
-	// // call DetectContentType if headers doesn't contain content-type yet
-	// // if total data is under "a few" KB and there are no flush calls, Content-Length is added automatically
+	return int(count), nil
+}
 
-	contents := buf
-	writeResult := row.stream.Write(contents)
-	if writeResult.IsErr() {
-		if writeResult.Err().Tag() == streams.StreamErrorClosed {
-			return 0, fmt.Errorf("failed to write to response body's stream: closed")
-		}
+func (self *responseWriter) WriteHeader(statusCode int) {
+	self.statusCode = statusCode
+}
 
-		//TODO: possible nil error here
-		return 0, fmt.Errorf("failed to write to response body's stream: %s", writeResult.Err().LastOperationFailed().ToDebugString())
+func (self *responseWriter) close() {
+	if self.stream != nil {
+		self.stream.Drop()
 	}
-
-	row.stream.BlockingFlush()
-
-	return len(contents), nil
-}
-
-func (row *responseOutparamWriter) WriteHeader(statusCode int) {
-	row.statuscode = statusCode
-}
-
-// reconcile headers from go to wasi
-func (row *responseOutparamWriter) reconcileHeaders() error {
-	for key, vals := range row.httpHeaders {
-		// convert each value distincly
-		fieldVals := []types.FieldValue{}
-		for _, val := range vals {
-			fieldVals = append(fieldVals, types.FieldValue(val))
-		}
-
-		if result := row.wasiHeaders.Set(types.FieldKey(key), fieldVals); result.IsErr() {
-			switch result.Err().Tag() {
-			case types.HeaderErrorInvalidSyntax:
-				return fmt.Errorf("failed to set header %s to [%s]: invalid syntax", key, strings.Join(vals, ","))
-			case types.HeaderErrorForbidden:
-				return fmt.Errorf("failed to set forbidden header key %s", key)
-			case types.HeaderErrorImmutable:
-				return fmt.Errorf("failed to set header on immutable header fields")
-			default:
-				return fmt.Errorf("not sure what happened here?")
-			}
-		}
+	if self.streamResult != nil {
+		self.streamResult.Drop()
 	}
-
-	//TODO: handle deleted headers
-
-	return nil
 }
 
-// convert the ResponseOutparam to http.ResponseWriter
-func NewHttpResponseWriter(out types.ResponseOutparam) *responseOutparamWriter {
-	row := &responseOutparamWriter{
-		outparam:    out,
-		httpHeaders: http.Header{},
-		wasiHeaders: *types.MakeFields(),
-	}
+func (self *responseWriter) send() error {
+	channel := self.channel
 
-	return row
-}
-
-func (row *responseOutparamWriter) reconcile() error {
-	// this response has been already reconciled
-	// which means the user explicitly called response.Write(buf []byte) fn
-	if row.reconciled {
+	if channel == nil {
 		return nil
+	} else {
+		self.channel = nil
 	}
 
-	err := row.reconcileHeaders()
+	fields, err := toWasiHeaders(self.headers)
 	if err != nil {
 		return err
 	}
 
-	// setting any headers after this will cause panic
-	row.response = *types.MakeOutgoingResponse(&row.wasiHeaders)
+	tx, rx := wasi.MakeStreamU8()
+	self.stream = tx
 
-	// set status code. default to 200
-	if row.statuscode == 0 {
-		row.statuscode = http.StatusOK
-	}
+	response, send := wasi.ResponseNew(
+		fields,
+		wit.Some(rx),
+		trailersFuture(), // TODO: support trailers
+	)
+	self.streamResult = send
 
-	row.response.SetStatusCode(types.StatusCode(row.statuscode))
+	response.SetStatusCode(uint16(self.statusCode))
 
-	// store that reconcilation has already happened
-	row.reconciled = true
+	channel <- wit.Ok[*wasi.Response, wasi.ErrorCode](response)
 
 	return nil
+}
+
+func (r *responseWriter) takeError() error {
+	if r.streamResult != nil {
+		streamResult := r.streamResult.Read()
+		r.streamResult = nil
+		if streamResult.IsErr() {
+			return fmt.Errorf(
+				"failed to read from HTTP body stream: %s",
+				errorString(streamResult.Err()),
+			)
+		}
+	}
+	return nil
+}
+
+func newHttpResponseWriter() *responseWriter {
+	return &responseWriter{
+		channel:    make(chan wit.Result[*wasi.Response, wasi.ErrorCode]),
+		headers:    http.Header{},
+		statusCode: 200,
+	}
 }

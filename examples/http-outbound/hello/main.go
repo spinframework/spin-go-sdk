@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
 )
@@ -17,7 +19,12 @@ func init() {
 			return
 		}
 
-		fmt.Fprintln(w, r1.Body)
+		if body, err := readToString(r1.Body); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			fmt.Fprintln(w, body)
+		}
 		fmt.Fprintln(w, r1.Header.Get("content-type"))
 
 		r2, err := spinhttp.Post("https://postman-echo.com/post", "text/plain", r.Body)
@@ -25,7 +32,12 @@ func init() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		fmt.Fprintln(w, r2.Body)
+		if body, err := readToString(r2.Body); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			fmt.Fprintln(w, body)
+		}
 
 		req, err := http.NewRequest("PUT", "https://postman-echo.com/put", bytes.NewBufferString("General Kenobi!"))
 		if err != nil {
@@ -39,7 +51,12 @@ func init() {
 			return
 		}
 
-		fmt.Fprintln(w, r3.Body)
+		if body, err := readToString(r3.Body); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		} else {
+			fmt.Fprintln(w, body)
+		}
 
 		// `spin.toml` is not configured to allow outbound HTTP requests to this host,
 		// so this request will fail.
@@ -47,6 +64,14 @@ func init() {
 			fmt.Fprintf(os.Stderr, "Cannot send HTTP request: %v", err)
 		}
 	})
+}
+
+func readToString(input io.Reader) (string, error) {
+	buf := new(strings.Builder)
+	if _, err := io.Copy(buf, input); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 func main() {}

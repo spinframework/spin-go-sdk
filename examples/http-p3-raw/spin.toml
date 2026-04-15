@@ -14,4 +14,4 @@ component = "http"
 source = "main.wasm"
 allowed_outbound_hosts = ["https://*"]
 [component.http.build]
-command = "go tool componentize-go -w wasi:http/service@0.3.0-rc-2026-03-15 -w platform build"
+command = "go tool componentize-go build"
