@@ -10,8 +10,8 @@ import (
 
 	handler "github.com/spinframework/spin-go-sdk/v3/exports/wasi_http_service_0_3_0_rc_2026_03_15/export_wasi_http_0_3_0_rc_2026_03_15_handler"
 	_ "github.com/spinframework/spin-go-sdk/v3/exports/wasi_http_service_0_3_0_rc_2026_03_15/wit_exports"
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
-	. "go.bytecodealliance.org/pkg/wit/types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 func init() {
@@ -53,7 +53,7 @@ func Handle(fn func(http.ResponseWriter, *http.Request)) {
 	handlerFn = fn
 }
 
-var wasiHandle = func(request *Request) Result[*Response, ErrorCode] {
+var wasiHandle = func(request *wasi.Request) wit.Result[*wasi.Response, wasi.ErrorCode] {
 	httpRes := newHttpResponseWriter()
 
 	go func() {
@@ -62,10 +62,12 @@ var wasiHandle = func(request *Request) Result[*Response, ErrorCode] {
 		// convert the incoming request to go's net/http type
 		httpReq, err := newHttpRequest(request)
 		if err != nil {
-			httpRes.channel <- Err[*Response, ErrorCode](MakeErrorCodeInternalError(Some(fmt.Sprintf(
-				"failed to convert WASI Request to http.Request: %v\n",
-				err,
-			))))
+			httpRes.channel <- wit.Err[*wasi.Response, wasi.ErrorCode](
+				wasi.MakeErrorCodeInternalError(wit.Some(fmt.Sprintf(
+					"failed to convert WASI Request to http.Request: %v\n",
+					err,
+				))),
+			)
 		} else {
 			defer httpReq.Body.Close()
 
@@ -75,8 +77,8 @@ var wasiHandle = func(request *Request) Result[*Response, ErrorCode] {
 			// if the user's handler never sent a response, we'll
 			// send a default one here:
 			if err := httpRes.send(); err != nil {
-				httpRes.channel <- Err[*Response, ErrorCode](
-					MakeErrorCodeInternalError(Some(fmt.Sprintf(
+				httpRes.channel <- wit.Err[*wasi.Response, wasi.ErrorCode](
+					wasi.MakeErrorCodeInternalError(wit.Some(fmt.Sprintf(
 						"failed to produce a response: %v\n",
 						err,
 					))),
@@ -88,8 +90,8 @@ var wasiHandle = func(request *Request) Result[*Response, ErrorCode] {
 	return (<-httpRes.channel)
 }
 
-func toWasiHeaders(headers http.Header) (*Fields, error) {
-	fields := MakeFields()
+func toWasiHeaders(headers http.Header) (*wasi.Fields, error) {
+	fields := wasi.MakeFields()
 
 	for key, vals := range headers {
 		fieldVals := [][]uint8{}
@@ -100,18 +102,18 @@ func toWasiHeaders(headers http.Header) (*Fields, error) {
 		if result := fields.Set(key, fieldVals); result.IsErr() {
 			fields.Drop()
 			switch result.Err().Tag() {
-			case HeaderErrorInvalidSyntax:
+			case wasi.HeaderErrorInvalidSyntax:
 				return nil, fmt.Errorf(
-					"failed to set header %v to [%v]: invalid syntax",
+					"failed to set header %s to [%s]: invalid syntax",
 					key,
 					strings.Join(vals, ","),
 				)
-			case HeaderErrorForbidden:
-				return nil, fmt.Errorf("failed to set forbidden header key %v", key)
-			case HeaderErrorImmutable:
+			case wasi.HeaderErrorForbidden:
+				return nil, fmt.Errorf("failed to set forbidden header key %s", key)
+			case wasi.HeaderErrorImmutable:
 				return nil, fmt.Errorf("failed to set header on immutable header fields")
 			default:
-				return nil, fmt.Errorf("error setting header %v", key)
+				return nil, fmt.Errorf("error setting header %s", key)
 			}
 		}
 	}
@@ -119,19 +121,19 @@ func toWasiHeaders(headers http.Header) (*Fields, error) {
 	return fields, nil
 }
 
-func trailersFuture() *FutureReader[Result[Option[*Fields], ErrorCode]] {
-	tx, rx := MakeFutureResultOptionFieldsErrorCode()
-	go tx.Write(Ok[Option[*Fields], ErrorCode](None[*Fields]()))
+func trailersFuture() *wit.FutureReader[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]] {
+	tx, rx := wasi.MakeFutureResultOptionFieldsErrorCode()
+	go tx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
 	return rx
 }
 
-func unitFuture() *FutureReader[Result[Unit, ErrorCode]] {
-	tx, rx := MakeFutureResultUnitErrorCode()
-	go tx.Write(Ok[Unit, ErrorCode](Unit{}))
+func unitFuture() *wit.FutureReader[wit.Result[wit.Unit, wasi.ErrorCode]] {
+	tx, rx := wasi.MakeFutureResultUnitErrorCode()
+	go tx.Write(wit.Ok[wit.Unit, wasi.ErrorCode](wit.Unit{}))
 	return rx
 }
 
-func errorString(code ErrorCode) string {
+func errorString(code wasi.ErrorCode) string {
 	// TODO: make this human-readable:
 	return fmt.Sprintf("%v", code)
 }

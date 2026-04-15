@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	client "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_client"
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 )
 
 // NewTransport returns http.RoundTripper backed by Spin SDK
@@ -38,7 +38,7 @@ func Send(req *http.Request) (*http.Response, error) {
 
 	result := client.Send(request)
 	if result.IsErr() {
-		return nil, fmt.Errorf("error sending request: %v", errorString(result.Err()))
+		return nil, fmt.Errorf("error sending request: %s", errorString(result.Err()))
 	}
 
 	response := result.Ok()
@@ -48,7 +48,7 @@ func Send(req *http.Request) (*http.Response, error) {
 	headers := headerResource.CopyAll()
 	headerResource.Drop()
 
-	rx, trailers := ResponseConsumeBody(response, unitFuture())
+	rx, trailers := wasi.ResponseConsumeBody(response, unitFuture())
 	body := newReader(rx, trailers)
 
 	resp := &http.Response{

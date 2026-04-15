@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io"
 
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
-	. "go.bytecodealliance.org/pkg/wit/types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Assert `bodyReader` implements the required interfaces
@@ -13,8 +13,8 @@ var _ io.Reader = &bodyReader{}
 var _ io.ReadCloser = &bodyReader{}
 
 type bodyReader struct {
-	stream   *StreamReader[uint8]
-	trailers *FutureReader[Result[Option[*Fields], ErrorCode]]
+	stream   *wit.StreamReader[uint8]
+	trailers *wit.FutureReader[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
 }
 
 func (self *bodyReader) Close() error {
@@ -45,14 +45,17 @@ func (self *bodyReader) takeError() error {
 		trailers := self.trailers.Read()
 		self.trailers = nil
 		if trailers.IsErr() {
-			return fmt.Errorf("failed to read from HTTP body stream: %v", errorString(trailers.Err()))
+			return fmt.Errorf("failed to read from HTTP body stream: %s", errorString(trailers.Err()))
 		}
 	}
 	return io.EOF
 }
 
 // create an io.Reader from the input stream
-func newReader(stream *StreamReader[uint8], trailers *FutureReader[Result[Option[*Fields], ErrorCode]]) *bodyReader {
+func newReader(
+	stream *wit.StreamReader[uint8],
+	trailers *wit.FutureReader[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]],
+) *bodyReader {
 	return &bodyReader{
 		stream:   stream,
 		trailers: trailers,

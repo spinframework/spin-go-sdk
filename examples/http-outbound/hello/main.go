@@ -70,9 +70,8 @@ func readToString(input io.Reader) (string, error) {
 	buf := new(strings.Builder)
 	if _, err := io.Copy(buf, input); err != nil {
 		return "", err
-	} else {
-		return buf.String(), nil
 	}
+	return buf.String(), nil
 }
 
 func main() {}

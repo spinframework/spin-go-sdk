@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
-	. "go.bytecodealliance.org/pkg/wit/types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Assert that `responseWriter` implements the required interface
@@ -13,11 +13,11 @@ var _ http.ResponseWriter = &responseWriter{}
 
 type responseWriter struct {
 	// channel to which the response will be sent
-	channel chan Result[*Response, ErrorCode]
+	channel chan wit.Result[*wasi.Response, wasi.ErrorCode]
 	// stream to which the response body is being written
-	stream *StreamWriter[uint8]
+	stream *wit.StreamWriter[uint8]
 	// future which resolves to an error if there is a problem delivering the response body
-	streamResult *FutureReader[Result[Unit, ErrorCode]]
+	streamResult *wit.FutureReader[wit.Result[wit.Unit, wasi.ErrorCode]]
 	// headers to send
 	headers http.Header
 	// status code to send
@@ -70,19 +70,19 @@ func (self *responseWriter) send() error {
 		return err
 	}
 
-	tx, rx := MakeStreamU8()
+	tx, rx := wasi.MakeStreamU8()
 	self.stream = tx
 
-	response, send := ResponseNew(
+	response, send := wasi.ResponseNew(
 		fields,
-		Some(rx),
+		wit.Some(rx),
 		trailersFuture(), // TODO: support trailers
 	)
 	self.streamResult = send
 
 	response.SetStatusCode(uint16(self.statusCode))
 
-	channel <- Ok[*Response, ErrorCode](response)
+	channel <- wit.Ok[*wasi.Response, wasi.ErrorCode](response)
 
 	return nil
 }
@@ -93,7 +93,7 @@ func (r *responseWriter) takeError() error {
 		r.streamResult = nil
 		if streamResult.IsErr() {
 			return fmt.Errorf(
-				"failed to read from HTTP body stream: %v",
+				"failed to read from HTTP body stream: %s",
 				errorString(streamResult.Err()),
 			)
 		}
@@ -103,7 +103,7 @@ func (r *responseWriter) takeError() error {
 
 func newHttpResponseWriter() *responseWriter {
 	return &responseWriter{
-		channel:    make(chan Result[*Response, ErrorCode]),
+		channel:    make(chan wit.Result[*wasi.Response, wasi.ErrorCode]),
 		headers:    http.Header{},
 		statusCode: 200,
 	}

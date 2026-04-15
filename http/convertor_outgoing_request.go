@@ -5,24 +5,24 @@ import (
 	"io"
 	"net/http"
 
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
-	. "go.bytecodealliance.org/pkg/wit/types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
-// convert the http.Request to a Request
-func newOutgoingHttpRequest(req *http.Request) (*Request, error) {
+// convert the http.Request to a wasi.Request
+func newOutgoingHttpRequest(req *http.Request) (*wasi.Request, error) {
 	headers, err := toWasiHeaders(req.Header)
 	if err != nil {
 		return nil, err
 	}
 	defer headers.Drop()
 
-	var body Option[*StreamReader[uint8]]
+	var body wit.Option[*wit.StreamReader[uint8]]
 	if req.Body == nil {
-		body = None[*StreamReader[uint8]]()
+		body = wit.None[*wit.StreamReader[uint8]]()
 	} else {
-		tx, rx := MakeStreamU8()
-		body = Some(rx)
+		tx, rx := wasi.MakeStreamU8()
+		body = wit.Some(rx)
 		go func() {
 			defer tx.Drop()
 			defer req.Body.Close()
@@ -41,50 +41,50 @@ func newOutgoingHttpRequest(req *http.Request) (*Request, error) {
 		}()
 	}
 
-	request, send := RequestNew(
+	request, send := wasi.RequestNew(
 		headers,
 		body,
-		trailersFuture(),        // TODO: support trailers
-		None[*RequestOptions](), // TODO: support options
+		trailersFuture(),                 // TODO: support trailers
+		wit.None[*wasi.RequestOptions](), // TODO: support options
 	)
 	send.Drop()
 	request.SetMethod(toWasiMethod(req.Method))
-	request.SetAuthority(Some(req.Host))
-	request.SetPathWithQuery(Some(req.URL.Path))
+	request.SetAuthority(wit.Some(req.Host))
+	request.SetPathWithQuery(wit.Some(req.URL.Path))
 
 	switch req.URL.Scheme {
 	case "http":
-		request.SetScheme(Some(MakeSchemeHttp()))
+		request.SetScheme(wit.Some(wasi.MakeSchemeHttp()))
 	case "https":
-		request.SetScheme(Some(MakeSchemeHttps()))
+		request.SetScheme(wit.Some(wasi.MakeSchemeHttps()))
 	default:
-		request.SetScheme(Some(MakeSchemeOther(req.URL.Scheme)))
+		request.SetScheme(wit.Some(wasi.MakeSchemeOther(req.URL.Scheme)))
 	}
 
 	return request, nil
 }
 
-func toWasiMethod(s string) Method {
+func toWasiMethod(s string) wasi.Method {
 	switch s {
 	case http.MethodConnect:
-		return MakeMethodConnect()
+		return wasi.MakeMethodConnect()
 	case http.MethodDelete:
-		return MakeMethodDelete()
+		return wasi.MakeMethodDelete()
 	case http.MethodGet:
-		return MakeMethodGet()
+		return wasi.MakeMethodGet()
 	case http.MethodHead:
-		return MakeMethodHead()
+		return wasi.MakeMethodHead()
 	case http.MethodOptions:
-		return MakeMethodOptions()
+		return wasi.MakeMethodOptions()
 	case http.MethodPatch:
-		return MakeMethodPatch()
+		return wasi.MakeMethodPatch()
 	case http.MethodPost:
-		return MakeMethodPost()
+		return wasi.MakeMethodPost()
 	case http.MethodPut:
-		return MakeMethodPut()
+		return wasi.MakeMethodPut()
 	case http.MethodTrace:
-		return MakeMethodTrace()
+		return wasi.MakeMethodTrace()
 	default:
-		return MakeMethodOther(s)
+		return wasi.MakeMethodOther(s)
 	}
 }

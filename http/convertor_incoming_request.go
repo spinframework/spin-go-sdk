@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
-	. "go.bytecodealliance.org/pkg/wit/types"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
-// convert the Request to an http.Request
-func newHttpRequest(ir *Request) (*http.Request, error) {
+// convert the wasi.Request to an http.Request
+func newHttpRequest(ir *wasi.Request) (*http.Request, error) {
 	defer ir.Drop()
 
 	method, err := methodToString(ir.GetMethod())
@@ -28,7 +28,7 @@ func newHttpRequest(ir *Request) (*http.Request, error) {
 	headers := headerResource.CopyAll()
 	headerResource.Drop()
 
-	rx, trailers := RequestConsumeBody(ir, unitFuture())
+	rx, trailers := wasi.RequestConsumeBody(ir, unitFuture())
 	body := newReader(rx, trailers)
 
 	req, err := http.NewRequest(method, url, body)
@@ -42,34 +42,34 @@ func newHttpRequest(ir *Request) (*http.Request, error) {
 	return req, nil
 }
 
-func methodToString(m Method) (string, error) {
+func methodToString(m wasi.Method) (string, error) {
 	switch m.Tag() {
-	case MethodConnect:
+	case wasi.MethodConnect:
 		return "CONNECT", nil
-	case MethodDelete:
+	case wasi.MethodDelete:
 		return "DELETE", nil
-	case MethodGet:
+	case wasi.MethodGet:
 		return "GET", nil
-	case MethodHead:
+	case wasi.MethodHead:
 		return "HEAD", nil
-	case MethodOptions:
+	case wasi.MethodOptions:
 		return "OPTIONS", nil
-	case MethodPatch:
+	case wasi.MethodPatch:
 		return "PATCH", nil
-	case MethodPost:
+	case wasi.MethodPost:
 		return "POST", nil
-	case MethodPut:
+	case wasi.MethodPut:
 		return "PUT", nil
-	case MethodTrace:
+	case wasi.MethodTrace:
 		return "TRACE", nil
-	case MethodOther:
+	case wasi.MethodOther:
 		return m.Other(), fmt.Errorf("unknown http method 'other'")
 	default:
 		return "", fmt.Errorf("failed to convert http method")
 	}
 }
 
-func toHttpHeader(src []Tuple2[string, []uint8], dest *http.Header) {
+func toHttpHeader(src []wit.Tuple2[string, []uint8], dest *http.Header) {
 	for _, pair := range src {
 		key := pair.F0
 		value := string(pair.F1)
