@@ -21,7 +21,7 @@ func init() {
 	spinhttp.Handle(func(w http.ResponseWriter, r *http.Request) {
 
 		// addr is the environment variable set in `spin.toml` that points to the
-		// address of the Mysql server.
+		// address of the postgres server.
 		addr := os.Getenv("DB_URL")
 
 		db := pg.Open(addr)

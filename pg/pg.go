@@ -9,9 +9,8 @@ import (
 	"io"
 	"reflect"
 
+	pg "github.com/spinframework/spin-go-sdk/v3/imports/spin_postgres_4_2_0_postgres"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	pg "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_postgres"
-	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_rdbms_types"
 )
 
 // Open returns a new connection to the database.
@@ -110,7 +109,7 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	colTypes := make([]uint8, len(cols))
 	for i, c := range cols {
 		colNames[i] = c.Name
-		colTypes[i] = uint8(c.DataType)
+		colTypes[i] = uint8(c.DataType.Tag())
 	}
 
 	rows := &rows{
@@ -220,35 +219,27 @@ func (r *rows) ColumnTypeScanType(index int) reflect.Type {
 func toRdbmsParameterValue(x any) pg.ParameterValue {
 	switch v := x.(type) {
 	case bool:
-		return rdbmstypes.MakeParameterValueBoolean(v)
+		return pg.MakeParameterValueBoolean(v)
 	case int8:
-		return rdbmstypes.MakeParameterValueInt8(v)
+		return pg.MakeParameterValueInt8(v)
 	case int16:
-		return rdbmstypes.MakeParameterValueInt16(v)
+		return pg.MakeParameterValueInt16(v)
 	case int32:
-		return rdbmstypes.MakeParameterValueInt32(v)
+		return pg.MakeParameterValueInt32(v)
 	case int64:
-		return rdbmstypes.MakeParameterValueInt64(v)
+		return pg.MakeParameterValueInt64(v)
 	case int:
-		return rdbmstypes.MakeParameterValueInt64(int64(v))
-	case uint8:
-		return rdbmstypes.MakeParameterValueUint8(v)
-	case uint16:
-		return rdbmstypes.MakeParameterValueUint16(v)
-	case uint32:
-		return rdbmstypes.MakeParameterValueUint32(v)
-	case uint64:
-		return rdbmstypes.MakeParameterValueUint64(v)
+		return pg.MakeParameterValueInt64(int64(v))
 	case float32:
-		return rdbmstypes.MakeParameterValueFloating32(v)
+		return pg.MakeParameterValueFloating32(v)
 	case float64:
-		return rdbmstypes.MakeParameterValueFloating64(v)
+		return pg.MakeParameterValueFloating64(v)
 	case string:
-		return rdbmstypes.MakeParameterValueStr(v)
+		return pg.MakeParameterValueStr(v)
 	case []byte:
-		return rdbmstypes.MakeParameterValueBinary(v)
+		return pg.MakeParameterValueBinary(v)
 	case nil:
-		return rdbmstypes.MakeParameterValueDbNull()
+		return pg.MakeParameterValueDbNull()
 	default:
 		panic("unknown value type")
 	}
@@ -256,13 +247,13 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 
 func toError(err pg.Error) error {
 	switch err.Tag() {
-	case rdbmstypes.ErrorBadParameter:
+	case pg.ErrorBadParameter:
 		return errors.New(err.BadParameter())
-	case rdbmstypes.ErrorConnectionFailed:
+	case pg.ErrorConnectionFailed:
 		return errors.New(err.ConnectionFailed())
-	case rdbmstypes.ErrorQueryFailed:
-		return errors.New(err.QueryFailed())
-	case rdbmstypes.ErrorValueConversionFailed:
+	case pg.ErrorQueryFailed:
+		return errors.New(err.QueryFailed().Text())
+	case pg.ErrorValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
 	default:
 		// TODO: not sure if using "Other" as the default is appropriate
@@ -270,37 +261,29 @@ func toError(err pg.Error) error {
 	}
 }
 
-func toRow(row []rdbmstypes.DbValue) []any {
+func toRow(row []pg.DbValue) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
 		switch v.Tag() {
-		case rdbmstypes.DbValueBoolean:
+		case pg.DbValueBoolean:
 			result[i] = v.Boolean()
-		case rdbmstypes.DbValueInt8:
+		case pg.DbValueInt8:
 			result[i] = v.Int8()
-		case rdbmstypes.DbValueInt16:
+		case pg.DbValueInt16:
 			result[i] = v.Int16()
-		case rdbmstypes.DbValueInt32:
+		case pg.DbValueInt32:
 			result[i] = v.Int32()
-		case rdbmstypes.DbValueInt64:
+		case pg.DbValueInt64:
 			result[i] = v.Int64()
-		case rdbmstypes.DbValueUint8:
-			result[i] = v.Uint8()
-		case rdbmstypes.DbValueUint16:
-			result[i] = v.Uint16()
-		case rdbmstypes.DbValueUint32:
-			result[i] = v.Uint32()
-		case rdbmstypes.DbValueUint64:
-			result[i] = v.Uint64()
-		case rdbmstypes.DbValueFloating32:
+		case pg.DbValueFloating32:
 			result[i] = v.Floating32()
-		case rdbmstypes.DbValueFloating64:
+		case pg.DbValueFloating64:
 			result[i] = v.Floating64()
-		case rdbmstypes.DbValueStr:
+		case pg.DbValueStr:
 			result[i] = v.Str()
-		case rdbmstypes.DbValueBinary:
+		case pg.DbValueBinary:
 			result[i] = v.Binary()
-		case rdbmstypes.DbValueDbNull:
+		case pg.DbValueDbNull:
 			result[i] = nil
 		default:
 			panic("unknown value type")
@@ -312,30 +295,22 @@ func toRow(row []rdbmstypes.DbValue) []any {
 
 func colTypeToReflectType(typ uint8) reflect.Type {
 	switch typ {
-	case uint8(rdbmstypes.DbDataTypeBoolean):
-		return reflect.TypeOf(false)
-	case uint8(rdbmstypes.DbDataTypeInt8):
-		return reflect.TypeOf(int8(0))
-	case uint8(rdbmstypes.DbDataTypeInt16):
-		return reflect.TypeOf(int16(0))
-	case uint8(rdbmstypes.DbDataTypeInt32):
-		return reflect.TypeOf(int32(0))
-	case uint8(rdbmstypes.DbDataTypeInt64):
-		return reflect.TypeOf(int64(0))
-	case uint8(rdbmstypes.DbDataTypeUint8):
-		return reflect.TypeOf(uint8(0))
-	case uint8(rdbmstypes.DbDataTypeUint16):
-		return reflect.TypeOf(uint16(0))
-	case uint8(rdbmstypes.DbDataTypeUint32):
-		return reflect.TypeOf(uint32(0))
-	case uint8(rdbmstypes.DbDataTypeUint64):
-		return reflect.TypeOf(uint64(0))
-	case uint8(rdbmstypes.DbDataTypeStr):
-		return reflect.TypeOf("")
-	case uint8(rdbmstypes.DbDataTypeBinary):
-		return reflect.TypeOf(new([]byte))
-	case uint8(rdbmstypes.DbDataTypeOther):
-		return reflect.TypeOf(new(any)).Elem()
+	case uint8(pg.DbDataTypeBoolean):
+		return reflect.TypeFor[bool]()
+	case uint8(pg.DbDataTypeInt8):
+		return reflect.TypeFor[int8]()
+	case uint8(pg.DbDataTypeInt16):
+		return reflect.TypeFor[int16]()
+	case uint8(pg.DbDataTypeInt32):
+		return reflect.TypeFor[int32]()
+	case uint8(pg.DbDataTypeInt64):
+		return reflect.TypeFor[int64]()
+	case uint8(pg.DbDataTypeStr):
+		return reflect.TypeFor[string]()
+	case uint8(pg.DbDataTypeBinary):
+		return reflect.TypeFor[[]byte]()
+	case uint8(pg.DbDataTypeOther):
+		return reflect.TypeFor[any]().Elem()
 	}
 	panic("invalid db column type of " + string(typ))
 }
