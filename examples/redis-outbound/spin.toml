@@ -16,5 +16,11 @@ environment = { REDIS_ADDRESS = "redis://localhost:6379", REDIS_CHANNEL = "messa
 allowed_outbound_hosts = ["redis://localhost:6379"]
 
 [component.redis-outbound.build]
-command = "go tool componentize-go build"
+# Note that we specify both `spin:up/http-trigger@4.0.0` _and_
+# `spin:up/redis-trigger@4.0.0` here, even though we only really want the
+# former.  That's because, as of this writing the `redis` package in
+# `spin-go-sdk` covers both inbound and outbound Redis APIs and thus pulls in
+# imports for both.  In order for `componentize-go` to resolve those imports, we
+# need to specify both worlds here.
+command = "go tool componentize-go -w spin:up/http-trigger@4.0.0 -w spin:up/redis-trigger@4.0.0 build"
 watch = ["**/*.go", "go.mod"]

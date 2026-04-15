@@ -1,28 +1,25 @@
 // Package redis provides access to Redis within Spin components, as well as a
 // handler for inbound Redis messages.
-
 package redis
 
 import (
+	"errors"
 	"fmt"
 
-	incominghandler "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_redis_trigger/export_fermyon_spin_inbound_redis"
-	_ "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_redis_trigger/wit_exports"
-	redis "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_redis"
-	redis_types "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_redis_types"
+	incominghandler "github.com/spinframework/spin-go-sdk/v3/exports/spin_up_redis_trigger_4_0_0/export_spin_redis_3_0_0_inbound_redis"
+	_ "github.com/spinframework/spin-go-sdk/v3/exports/spin_up_redis_trigger_4_0_0/wit_exports"
+	redis "github.com/spinframework/spin-go-sdk/v3/imports/spin_redis_3_0_0_redis"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Handle sets the handler function for the inbound Redis trigger.
 // It must be called from an init() function.
 func Handle(handle func(message []byte) error) {
-	incominghandler.Exports.Handle = func(message []byte) wit.Result[wit.Unit, redis_types.Error] {
-		err := handle(message)
-		if err == nil {
-			return wit.Err[wit.Unit, redis_types.Error](redis_types.ErrorError)
-		} else {
-			return wit.Ok[wit.Unit, redis_types.Error](wit.Unit{})
+	incominghandler.Exports.Handle = func(message []byte) wit.Result[wit.Unit, redis.Error] {
+		if err := handle(message); err != nil {
+			return wit.Err[wit.Unit](redis.MakeErrorOther(err.Error()))
 		}
+		return wit.Ok[wit.Unit, redis.Error](wit.Unit{})
 	}
 }
 
@@ -243,5 +240,16 @@ func toResult(param redis.RedisResult) *Result {
 }
 
 func toError(e redis.Error) error {
-	return fmt.Errorf("%v", e.Other())
+	switch e.Tag() {
+	case redis.ErrorInvalidAddress:
+		return errors.New("redis: invalid address")
+	case redis.ErrorTooManyConnections:
+		return errors.New("redis: too many connections")
+	case redis.ErrorTypeError:
+		return errors.New("redis: type error")
+	case redis.ErrorOther:
+		return fmt.Errorf("redis: %s", e.Other())
+	default:
+		return fmt.Errorf("redis: unknown error %v", e)
+	}
 }
