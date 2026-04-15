@@ -1,4 +1,4 @@
-package export_fermyon_spin_inbound_redis
+package export_spin_redis_3_0_0_inbound_redis
 
 import (
 	redis "github.com/spinframework/spin-go-sdk/v3/imports/spin_redis_3_0_0_redis"
