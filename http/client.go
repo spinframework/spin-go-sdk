@@ -9,26 +9,27 @@ import (
 	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 )
 
-// NewTransport returns http.RoundTripper backed by Spin SDK
+// NewTransport returns an [http.RoundTripper] backed by the Spin SDK.
 func NewTransport() http.RoundTripper {
 	return &Transport{}
 }
 
-// Transport implements http.RoundTripper
+// Transport implements [http.RoundTripper] using the Spin SDK.
 type Transport struct{}
 
-// RoundTrip makes roundtrip using Spin SDK
+// RoundTrip executes a single HTTP transaction using the Spin SDK.
 func (r *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return Send(req)
 }
 
-// NewClient returns a new HTTP client compatible with the Spin SDK
+// NewClient returns a new HTTP client compatible with the Spin SDK.
 func NewClient() *http.Client {
 	return &http.Client{
 		Transport: &Transport{},
 	}
 }
 
+// Send sends an HTTP request using the Spin SDK and returns the response.
 func Send(req *http.Request) (*http.Response, error) {
 	request, err := newOutgoingHttpRequest(req)
 	if err != nil {
@@ -62,6 +63,7 @@ func Send(req *http.Request) (*http.Response, error) {
 	return resp, nil
 }
 
+// Get issues a GET request to the specified URL using the Spin SDK.
 func Get(url string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -71,6 +73,8 @@ func Get(url string) (*http.Response, error) {
 	return Send(req)
 }
 
+// Post issues a POST request to the specified URL using the Spin SDK
+// with the given content type and body.
 func Post(url string, contentType string, body io.Reader) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {

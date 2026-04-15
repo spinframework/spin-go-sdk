@@ -13,6 +13,8 @@ import (
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
+// Handle sets the handler function for the inbound Redis trigger.
+// It must be called from an init() function.
 func Handle(handle func(message []byte) error) {
 	incominghandler.Exports.Handle = func(message []byte) wit.Result[wit.Unit, redis_types.Error] {
 		err := handle(message)
@@ -39,7 +41,7 @@ func NewClient(address string) (Client, error) {
 	return Client{conn: *result.Ok()}, nil
 }
 
-// Publish a Redis message to the specified channel.
+// Publish publishes a Redis message to the specified channel.
 func (c *Client) Publish(channel string, payload []byte) error {
 	result := c.conn.Publish(channel, redis.Payload(payload))
 	if result.IsErr() {
@@ -49,7 +51,7 @@ func (c *Client) Publish(channel string, payload []byte) error {
 	return nil
 }
 
-// Get the value of a key.
+// Get returns the value of a key.
 func (c *Client) Get(key string) ([]byte, error) {
 	result := c.conn.Get(key)
 	if result.IsErr() {
@@ -63,7 +65,7 @@ func (c *Client) Get(key string) ([]byte, error) {
 	return result.Ok().Some(), nil
 }
 
-// Set key to value.
+// Set sets the value of a key.
 //
 // If key already holds a value, it is overwritten.
 func (c *Client) Set(key string, payload []byte) error {
@@ -75,11 +77,11 @@ func (c *Client) Set(key string, payload []byte) error {
 	return nil
 }
 
-// Increments the number stored at key by one.
+// Incr increments the number stored at key by one.
 //
 // If the key does not exist, it is set to 0 before performing the operation.
-// An `error::type-error` is returned if the key contains a value of the wrong type
-// or contains a string that can not be represented as integer.
+// An error is returned if the key contains a value of the wrong type
+// or contains a string that can not be represented as an integer.
 func (c *Client) Incr(key string) (int64, error) {
 	result := c.conn.Incr(key)
 	if result.IsErr() {
@@ -89,9 +91,9 @@ func (c *Client) Incr(key string) (int64, error) {
 	return result.Ok(), nil
 }
 
-// Removes the specified keys.
+// Del removes the specified keys.
 //
-// A key is ignored if it does not exist. Returns the number of keys deleted.
+// A key is ignored if it does not exist. It returns the number of keys deleted.
 func (c *Client) Del(keys ...string) (uint32, error) {
 	result := c.conn.Del(keys)
 	if result.IsErr() {
@@ -101,7 +103,7 @@ func (c *Client) Del(keys ...string) (uint32, error) {
 	return result.Ok(), nil
 }
 
-// Add the specified `values` to the set named `key`, returning the number of newly-added values.
+// Sadd adds the specified values to the set named key, returning the number of newly-added values.
 func (c *Client) Sadd(key string, values ...string) (uint32, error) {
 	result := c.conn.Sadd(key, values)
 	if result.IsErr() {
@@ -111,7 +113,7 @@ func (c *Client) Sadd(key string, values ...string) (uint32, error) {
 	return result.Ok(), nil
 }
 
-// Retrieve the contents of the set named `key`.
+// Smembers retrieves the contents of the set named key.
 func (c *Client) Smembers(key string) ([]string, error) {
 	result := c.conn.Smembers(key)
 	if result.IsErr() {
@@ -121,7 +123,7 @@ func (c *Client) Smembers(key string) ([]string, error) {
 	return result.Ok(), nil
 }
 
-// Remove the specified `values` from the set named `key`, returning the number of newly-removed values.
+// Srem removes the specified values from the set named key, returning the number of newly-removed values.
 func (c *Client) Srem(key string, values ...string) (uint32, error) {
 	result := c.conn.Srem(key, values)
 	if result.IsErr() {
@@ -135,9 +137,13 @@ func (c *Client) Srem(key string, values ...string) (uint32, error) {
 type ResultKind uint8
 
 const (
+	// ResultKindNil indicates a nil result.
 	ResultKindNil ResultKind = iota
+	// ResultKindStatus indicates a status string result.
 	ResultKindStatus
+	// ResultKindInt64 indicates an int64 result.
 	ResultKindInt64
+	// ResultKindBinary indicates a binary (byte slice) result.
 	ResultKindBinary
 )
 

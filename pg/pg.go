@@ -1,3 +1,4 @@
+// Package pg provides a database/sql driver for PostgreSQL databases within Spin components.
 package pg
 
 import (
@@ -167,7 +168,7 @@ var _ driver.Rows = (*rows)(nil)
 var _ driver.RowsColumnTypeScanType = (*rows)(nil)
 var _ driver.RowsNextResultSet = (*rows)(nil)
 
-// Columns return column names.
+// Columns returns the column names.
 func (r *rows) Columns() []string {
 	return r.columns
 }
@@ -211,7 +212,7 @@ func (r *rows) NextResultSet() error {
 	return io.EOF // Per interface spec.
 }
 
-// ColumnTypeScanType return the value type that can be used to scan types into.
+// ColumnTypeScanType returns the value type that can be used to scan types into.
 func (r *rows) ColumnTypeScanType(index int) reflect.Type {
 	return colTypeToReflectType(r.columnType[index])
 }

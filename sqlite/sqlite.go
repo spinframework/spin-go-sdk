@@ -85,7 +85,7 @@ type rows struct {
 
 var _ driver.Rows = (*rows)(nil)
 
-// Columns return column names.
+// Columns returns the column names.
 func (r *rows) Columns() []string {
 	return r.columns
 }

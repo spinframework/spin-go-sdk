@@ -1,3 +1,4 @@
+// Package variables provides access to Spin application variables.
 package variables
 
 import (
@@ -6,9 +7,9 @@ import (
 	variables "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_variables"
 )
 
-// Get an application variable value for the current component.
+// Get returns an application variable value for the current component.
 //
-// The name must match one defined in in the component manifest.
+// The name must match one defined in the component manifest.
 func Get(key string) (string, error) {
 	result := variables.Get(key)
 	if result.IsErr() {

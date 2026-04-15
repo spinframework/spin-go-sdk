@@ -1,3 +1,4 @@
+// Package db provides shared database utilities for Spin database drivers.
 package db
 
 import "database/sql/driver"
