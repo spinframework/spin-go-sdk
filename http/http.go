@@ -19,22 +19,21 @@ func init() {
 }
 
 const (
-	// The application base path.
+	// HeaderBasePath is the application base path.
 	HeaderBasePath = "spin-base-path"
-	// The component route pattern matched, _excluding_ any wildcard indicator.
+	// HeaderComponentRoot is the component route pattern matched, excluding any wildcard indicator.
 	HeaderComponentRoot = "spin-component-route"
-	// The full URL of the request. This includes full host and scheme information.
+	// HeaderFullUrl is the full URL of the request, including full host and scheme information.
 	HeaderFullUrl = "spin-full-url"
-	// The part of the request path that was matched by the route (including
-	// the base and wildcard indicator if present).
+	// HeaderMatchedRoute is the part of the request path that was matched by the route,
+	// including the base and wildcard indicator if present.
 	HeaderMatchedRoute = "spin-matched-route"
-	// The request path relative to the component route (including any base).
+	// HeaderPathInfo is the request path relative to the component route, including any base.
 	HeaderPathInfo = "spin-path-info"
-	// The component route pattern matched, as written in the component
-	// manifest (that is, _excluding_ the base, but including the wildcard
-	// indicator if present).
+	// HeaderRawComponentRoot is the component route pattern matched, as written in the component
+	// manifest. It excludes the base but includes the wildcard indicator if present.
 	HeaderRawComponentRoot = "spin-raw-component-route"
-	// The client address for the request.
+	// HeaderClientAddr is the client address for the request.
 	HeaderClientAddr = "spin-client-addr"
 )
 

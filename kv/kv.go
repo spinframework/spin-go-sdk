@@ -1,3 +1,4 @@
+// Package kv provides access to Spin key-value stores.
 package kv
 
 import (
@@ -6,11 +7,12 @@ import (
 	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_key_value"
 )
 
+// Store represents a connection to a key-value store.
 type Store struct {
 	store *keyvalue.Store
 }
 
-// Open the store with the label.
+// Open opens the store with the specified label.
 func Open(label string) (*Store, error) {
 	result := keyvalue.StoreOpen(label)
 	if result.IsErr() {
@@ -22,14 +24,14 @@ func Open(label string) (*Store, error) {
 	}, nil
 }
 
-// Open the default store.
+// OpenDefault opens the default store.
 //
-// This is equivalent to `kv.Open("default")`.
+// This is equivalent to Open("default").
 func OpenDefault() (*Store, error) {
 	return Open("default")
 }
 
-// Set the key/value pair in store
+// Set sets the key/value pair in the store.
 func (s *Store) Set(key string, value []byte) error {
 	result := s.store.Set(key, value)
 	if result.IsErr() {
@@ -39,7 +41,7 @@ func (s *Store) Set(key string, value []byte) error {
 	return nil
 }
 
-// Get the value of provided key from the store
+// Get returns the value of the provided key from the store.
 func (s *Store) Get(key string) ([]byte, error) {
 	result := s.store.Get(key)
 	if result.IsErr() {
@@ -54,7 +56,7 @@ func (s *Store) Get(key string) ([]byte, error) {
 	return value.Some(), nil
 }
 
-// Delete the given key/value from the store
+// Delete removes the given key/value from the store.
 func (s *Store) Delete(key string) error {
 	result := s.store.Delete(key)
 	if result.IsErr() {
@@ -64,7 +66,7 @@ func (s *Store) Delete(key string) error {
 	return nil
 }
 
-// Exists check if a given key exist in the store
+// Exists checks if a given key exists in the store.
 func (s *Store) Exists(key string) (bool, error) {
 	result := s.store.Exists(key)
 	if result.IsErr() {
@@ -74,7 +76,7 @@ func (s *Store) Exists(key string) (bool, error) {
 	return result.Ok(), nil
 }
 
-// GetKets returns all the keys from the store
+// GetKeys returns all the keys from the store.
 func (s *Store) GetKeys() ([]string, error) {
 	result := s.store.GetKeys()
 	if result.IsErr() {
