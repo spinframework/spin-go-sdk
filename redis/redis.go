@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/spinframework/spin-go-sdk/v3/exports/fermyon_spin_redis_trigger/wit_exports"
 	incominghandler "github.com/spinframework/spin-go-sdk/v3/exports/spin_up_redis_trigger_4_0_0/export_spin_redis_3_0_0_inbound_redis"
+	_ "github.com/spinframework/spin-go-sdk/v3/exports/spin_up_redis_trigger_4_0_0/wit_exports"
 	redis "github.com/spinframework/spin-go-sdk/v3/imports/spin_redis_3_0_0_redis"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
