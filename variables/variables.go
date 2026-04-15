@@ -2,9 +2,9 @@
 package variables
 
 import (
-	"fmt"
+	"errors"
 
-	variables "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_variables"
+	variables "github.com/spinframework/spin-go-sdk/v3/imports/spin_variables_3_0_0_variables"
 )
 
 // Get returns an application variable value for the current component.
@@ -22,14 +22,14 @@ func Get(key string) (string, error) {
 func errorVariantToError(err variables.Error) error {
 	switch err.Tag() {
 	case variables.ErrorInvalidName:
-		return fmt.Errorf("%v", err.InvalidName())
+		return errors.New(err.InvalidName())
 	case variables.ErrorProvider:
-		return fmt.Errorf("%v", err.Provider())
+		return errors.New(err.Provider())
 	case variables.ErrorUndefined:
-		return fmt.Errorf("%v", err.Undefined())
+		return errors.New(err.Undefined())
 	case variables.ErrorOther:
-		return fmt.Errorf("%v", err.Other())
+		return errors.New(err.Other())
 	default:
-		return fmt.Errorf("no error provided by host implementation")
+		return errors.New("no error provided by host implementation")
 	}
 }
