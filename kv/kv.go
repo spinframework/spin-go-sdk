@@ -4,7 +4,7 @@ package kv
 import (
 	"fmt"
 
-	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_key_value"
+	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/spin_key_value_3_0_0_key_value"
 )
 
 // Store represents a connection to a key-value store.
@@ -78,12 +78,27 @@ func (s *Store) Exists(key string) (bool, error) {
 
 // GetKeys returns all the keys from the store.
 func (s *Store) GetKeys() ([]string, error) {
-	result := s.store.GetKeys()
+	stream, future := s.store.GetKeys()
+	defer stream.Drop()
+
+	var keys []string
+	buf := make([]string, 64)
+	for {
+		n := stream.Read(buf)
+		if n > 0 {
+			keys = append(keys, buf[:n]...)
+		}
+		if stream.WriterDropped() {
+			break
+		}
+	}
+
+	result := future.Read()
 	if result.IsErr() {
 		return nil, errorVariantToError(result.Err())
 	}
 
-	return result.Ok(), nil
+	return keys, nil
 }
 
 func errorVariantToError(code keyvalue.Error) error {
