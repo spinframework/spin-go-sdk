@@ -9,7 +9,6 @@ writing).
 
 #### Prerequisites
 
-- [componentize-go](https://github.com/bytecodealliance/componentize-go/)
 - Curl
 
 ```shell
@@ -46,4 +45,3 @@ curl -i \
     -H 'url: https://bytecodealliance.org/' \
     http://127.0.0.1:3000/hash-all
 ```
-
