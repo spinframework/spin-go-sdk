@@ -1,0 +1,19 @@
+spin_manifest_version = 2
+
+[application]
+name = "files-example"
+authors = ["Fermyon Engineering <engineering@fermyon.com>"]
+description = "A simple Spin application written in Go."
+version = "1.0.0"
+
+[[trigger.http]]
+route = "/..."
+component = "files"
+
+[component.files]
+source = "main.wasm"
+files = [{ source = "static", destination = "/" }]
+
+[component.files.build]
+command = "go tool componentize-go build"
+
