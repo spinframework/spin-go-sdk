@@ -2,7 +2,6 @@
 - [**go**](https://go.dev/dl/) - v1.25+
 - [**spin**](https://github.com/spinframework/spin) - Latest version
 - [**docker**](https://docs.docker.com/get-started/get-docker/) - Latest version
-- [**componentize-go**](https://github.com/bytecodealliance/componentize-go) - Latest version
 
 # Usage
 In a terminal window, use the below command to run MySQL:
