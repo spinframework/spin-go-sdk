@@ -216,7 +216,10 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 	stream.Drop()
 	completionFuture.Drop()
 
-	return &result{conn: &s.conn.spinConn}, nil
+	return &result{
+		insertID:     s.conn.spinConn.LastInsertRowidAsync(),
+		rowsAffected: int64(s.conn.spinConn.ChangesAsync()),
+	}, nil
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
@@ -225,21 +228,15 @@ func (s *stmt) ColumnConverter(_ int) driver.ValueConverter {
 }
 
 type result struct {
-	conn *sqlite.Connection
+	insertID, rowsAffected int64
 }
 
 func (r result) LastInsertId() (int64, error) {
-	if r.conn == nil {
-		return -1, errors.New("LastInsertId is unavailable: no connection")
-	}
-	return r.conn.LastInsertRowidAsync(), nil
+	return r.insertID, nil
 }
 
 func (r result) RowsAffected() (int64, error) {
-	if r.conn == nil {
-		return -1, errors.New("RowsAffected is unavailable: no connection")
-	}
-	return int64(r.conn.ChangesAsync()), nil
+	return r.rowsAffected, nil
 }
 
 func toSqliteValue(x any) sqlite.Value {
