@@ -8,9 +8,11 @@ import (
 	"errors"
 	"io"
 	"reflect"
+	"time"
 
 	pg "github.com/spinframework/spin-go-sdk/v3/imports/spin_postgres_4_2_0_postgres"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	wittypes "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Open returns a new connection to the database.
@@ -238,6 +240,22 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 		return pg.MakeParameterValueStr(v)
 	case []byte:
 		return pg.MakeParameterValueBinary(v)
+	case time.Time:
+		v = v.UTC()
+		return pg.MakeParameterValueDatetime(wittypes.Tuple7[int32, uint8, uint8, uint8, uint8, uint8, uint32]{
+			F0: int32(v.Year()),
+			F1: uint8(v.Month()),
+			F2: uint8(v.Day()),
+			F3: uint8(v.Hour()),
+			F4: uint8(v.Minute()),
+			F5: uint8(v.Second()),
+			F6: uint32(v.Nanosecond()),
+		})
+	case time.Duration:
+		// TODO: does this need to be parsed into Micros/Days/Months?
+		return pg.MakeParameterValueInterval(pg.Interval{
+			Micros: v.Microseconds(),
+		})
 	case nil:
 		return pg.MakeParameterValueDbNull()
 	default:
@@ -283,6 +301,45 @@ func toRow(row []pg.DbValue) []any {
 			result[i] = v.Str()
 		case pg.DbValueBinary:
 			result[i] = v.Binary()
+		case pg.DbValueDate:
+			d := v.Date()
+			result[i] = time.Date(int(d.F0), time.Month(d.F1), int(d.F2), 0, 0, 0, 0, time.UTC)
+		case pg.DbValueTime:
+			t := v.Time()
+			result[i] = time.Date(0, 1, 1, int(t.F0), int(t.F1), int(t.F2), int(t.F3), time.UTC)
+		case pg.DbValueDatetime:
+			dt := v.Datetime()
+			result[i] = time.Date(int(dt.F0), time.Month(dt.F1), int(dt.F2), int(dt.F3), int(dt.F4), int(dt.F5), int(dt.F6), time.UTC)
+		case pg.DbValueTimestamp:
+			result[i] = time.Unix(v.Timestamp(), 0).UTC()
+		case pg.DbValueUuid:
+			result[i] = v.Uuid()
+
+		// TODO make these all go types
+		// case pg.DbValueJsonb:
+		// 	result[i] = v.Jsonb()
+		// case pg.DbValueDecimal:
+		// 	result[i] = v.Decimal()
+		// case pg.DbValueRangeInt32:
+		// 	result[i] = v.RangeInt32()
+		// case pg.DbValueRangeInt64:
+		// 	result[i] = v.RangeInt64()
+		// case pg.DbValueRangeDecimal:
+		// 	result[i] = v.RangeDecimal()
+		// case pg.DbValueArrayInt32:
+		// 	result[i] = v.ArrayInt32()
+		// case pg.DbValueArrayInt64:
+		// 	result[i] = v.ArrayInt64()
+		// case pg.DbValueArrayDecimal:
+		// 	result[i] = v.ArrayDecimal()
+		// case pg.DbValueArrayStr:
+		// 	result[i] = v.ArrayStr()
+
+		// TODO: time.duration
+		// case pg.DbValueInterval:
+		// 	result[i] = v.Interval()
+		case pg.DbValueUnsupported:
+			result[i] = v.Unsupported()
 		case pg.DbValueDbNull:
 			result[i] = nil
 		default:
@@ -305,10 +362,42 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 		return reflect.TypeFor[int32]()
 	case uint8(pg.DbDataTypeInt64):
 		return reflect.TypeFor[int64]()
+	case uint8(pg.DbDataTypeFloating32):
+		return reflect.TypeFor[float32]()
+	case uint8(pg.DbDataTypeFloating64):
+		return reflect.TypeFor[float64]()
 	case uint8(pg.DbDataTypeStr):
+		return reflect.TypeFor[string]()
+	case uint8(pg.DbDataTypeUuid):
+		return reflect.TypeFor[string]()
+	case uint8(pg.DbDataTypeDecimal):
+		// TODO: Is this okay to leave as a string?
 		return reflect.TypeFor[string]()
 	case uint8(pg.DbDataTypeBinary):
 		return reflect.TypeFor[[]byte]()
+	case uint8(pg.DbDataTypeJsonb):
+		return reflect.TypeFor[[]byte]()
+	case uint8(pg.DbDataTypeDate),
+		uint8(pg.DbDataTypeTime),
+		uint8(pg.DbDataTypeDatetime),
+		uint8(pg.DbDataTypeTimestamp):
+		return reflect.TypeFor[time.Time]()
+	case uint8(pg.DbDataTypeInterval):
+		// TODO
+	case uint8(pg.DbDataTypeRangeInt32):
+		// TODO
+	case uint8(pg.DbDataTypeRangeInt64):
+		// TODO
+	case uint8(pg.DbDataTypeRangeDecimal):
+		// TODO
+	case uint8(pg.DbDataTypeArrayInt32):
+		// TODO
+	case uint8(pg.DbDataTypeArrayInt64):
+		// TODO
+	case uint8(pg.DbDataTypeArrayDecimal):
+		// TODO
+	case uint8(pg.DbDataTypeArrayStr):
+		// TODO
 	case uint8(pg.DbDataTypeOther):
 		return reflect.TypeFor[any]().Elem()
 	}
