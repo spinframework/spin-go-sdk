@@ -37,7 +37,8 @@ func init() {
 		for rows.Next() {
 			var pet Pet
 			if err := rows.Scan(&pet.ID, &pet.Name, &pet.Prey, &pet.IsFinicky); err != nil {
-				fmt.Println(err)
+				fmt.Printf("Error: %#v\n", err)
+				return
 			}
 			pets = append(pets, &pet)
 		}

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"io"
 
+	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/spin_sqlite_3_1_0_sqlite"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_sqlite"
 )
 
 // Open returns a new connection to the database.
@@ -58,7 +58,7 @@ func (d *connector) Driver() driver.Driver {
 
 // Open returns a new connection to the database.
 func (d *connector) Open(name string) (driver.Conn, error) {
-	results := sqlite.ConnectionOpen(name)
+	results := sqlite.ConnectionOpenAsync(name)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
@@ -80,7 +80,6 @@ type rows struct {
 	pos     int
 	len     int
 	rows    [][]any
-	closed  bool
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -95,7 +94,6 @@ func (r *rows) Close() error {
 	r.rows = nil
 	r.pos = 0
 	r.len = 0
-	r.closed = true
 	return nil
 }
 
@@ -155,27 +153,37 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 		sqliteParams[i] = toSqliteValue(v)
 	}
 
-	results := s.conn.spinConn.Execute(s.query, sqliteParams)
+	results := s.conn.spinConn.ExecuteAsync(s.query, sqliteParams)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
 
-	rowLen := len(results.Ok().Rows)
-	allRows := make([][]any, rowLen)
-	for rowNum, row := range results.Ok().Rows {
-		allRows[rowNum] = toRow(row.Values)
-	}
+	tuple := results.Ok()
+	cols := tuple.F0
+	stream := tuple.F1
+	completionFuture := tuple.F2
+	defer stream.Drop()
+	defer completionFuture.Drop()
 
-	cols := results.Ok().Columns
 	colNames := make([]string, len(cols))
-	for i, c := range cols {
-		colNames[i] = c
+	copy(colNames, cols)
+
+	var allRows [][]any
+	buf := make([]sqlite.RowResult, 64)
+	for !stream.WriterDropped() {
+		count := stream.Read(buf)
+		if count == 0 {
+			break
+		}
+		for i := range count {
+			allRows = append(allRows, toRow(buf[i].Values))
+		}
 	}
 
 	rows := &rows{
 		columns: colNames,
 		rows:    allRows,
-		len:     int(rowLen),
+		len:     len(allRows),
 	}
 	return rows, nil
 }
@@ -188,12 +196,30 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 		sqliteParams[i] = toSqliteValue(v)
 	}
 
-	queryResult := s.conn.spinConn.Execute(s.query, sqliteParams)
+	queryResult := s.conn.spinConn.ExecuteAsync(s.query, sqliteParams)
 	if queryResult.IsErr() {
 		return &result{}, toError(queryResult.Err())
 	}
 
-	return &result{}, nil
+	tuple := queryResult.Ok()
+	stream := tuple.F1
+	completionFuture := tuple.F2
+
+	// Drain the stream to ensure the query completes.
+	buf := make([]sqlite.RowResult, 64)
+	for !stream.WriterDropped() {
+		count := stream.Read(buf)
+		if count == 0 {
+			break
+		}
+	}
+	stream.Drop()
+	completionFuture.Drop()
+
+	return &result{
+		insertID:     s.conn.spinConn.LastInsertRowidAsync(),
+		rowsAffected: int64(s.conn.spinConn.ChangesAsync()),
+	}, nil
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
@@ -201,14 +227,16 @@ func (s *stmt) ColumnConverter(_ int) driver.ValueConverter {
 	return spindb.GlobalParameterConverter
 }
 
-type result struct{}
+type result struct {
+	insertID, rowsAffected int64
+}
 
 func (r result) LastInsertId() (int64, error) {
-	return -1, errors.New("LastInsertId is unsupported by this driver")
+	return r.insertID, nil
 }
 
 func (r result) RowsAffected() (int64, error) {
-	return -1, errors.New("RowsAffected is unsupported by this driver")
+	return r.rowsAffected, nil
 }
 
 func toSqliteValue(x any) sqlite.Value {
@@ -281,6 +309,5 @@ func toRow(row []sqlite.Value) []any {
 			panic("unreachable code")
 		}
 	}
-
 	return result
 }
