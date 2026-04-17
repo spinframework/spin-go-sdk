@@ -192,6 +192,18 @@ func TestVariables(t *testing.T) {
 	}
 }
 
+func TestFiles(t *testing.T) {
+	spin := startSpin(t, "testdata/files")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url)
+	spin.cancel()
+	t.Log(resp.Status)
+	if resp.StatusCode != 200 {
+		t.Fatalf("unexpected status: %v", resp.Status)
+	}
+}
+
 // TestBuildExamples ensures that the Go examples will build successfully.
 func TestBuildExamples(t *testing.T) {
 	examples, err := os.ReadDir("examples")
