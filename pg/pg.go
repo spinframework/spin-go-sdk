@@ -273,9 +273,10 @@ func toError(err pg.Error) error {
 		return errors.New(err.QueryFailed().Text())
 	case pg.ErrorValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
-	default:
-		// TODO: not sure if using "Other" as the default is appropriate
+	case pg.ErrorOther:
 		return errors.New(err.Other())
+	default:
+		panic("unknown error from runtime")
 	}
 }
 

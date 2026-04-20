@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
 	"github.com/spinframework/spin-go-sdk/v3/pg"
@@ -15,6 +16,7 @@ type Pet struct {
 	Name      string
 	Prey      *string // nullable field must be a pointer
 	IsFinicky bool
+	Timestamp time.Time
 }
 
 func init() {
@@ -27,7 +29,7 @@ func init() {
 		db := pg.Open(addr)
 		defer db.Close()
 
-		_, err := db.Query("INSERT INTO pets VALUES ($1, 'Maya', $2, $3);", int32(4), "bananas", true)
+		_, err := db.Query("INSERT INTO pets VALUES ($1, 'Maya', $2, $3, $4);", int32(4), "bananas", true, time.Now())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -42,7 +44,7 @@ func init() {
 		var pets []*Pet
 		for rows.Next() {
 			var pet Pet
-			if err := rows.Scan(&pet.ID, &pet.Name, &pet.Prey, &pet.IsFinicky); err != nil {
+			if err := rows.Scan(&pet.ID, &pet.Name, &pet.Prey, &pet.IsFinicky, &pet.Timestamp); err != nil {
 				fmt.Println(err)
 			}
 			pets = append(pets, &pet)
