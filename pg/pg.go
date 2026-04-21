@@ -240,6 +240,12 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 		return pg.MakeParameterValueStr(v)
 	case []byte:
 		return pg.MakeParameterValueBinary(v)
+	case []string:
+		return pg.MakeParameterValueArrayStr(toOptionSlice(v))
+	case []int32:
+		return pg.MakeParameterValueArrayInt32(toOptionSlice(v))
+	case []int64:
+		return pg.MakeParameterValueArrayInt64(toOptionSlice(v))
 	case time.Time:
 		v = v.UTC()
 		return pg.MakeParameterValueDatetime(wittypes.Tuple7[int32, uint8, uint8, uint8, uint8, uint8, uint32]{
@@ -327,14 +333,14 @@ func toRow(row []pg.DbValue) []any {
 		// 	result[i] = v.RangeInt64()
 		// case pg.DbValueRangeDecimal:
 		// 	result[i] = v.RangeDecimal()
-		// case pg.DbValueArrayInt32:
-		// 	result[i] = v.ArrayInt32()
-		// case pg.DbValueArrayInt64:
-		// 	result[i] = v.ArrayInt64()
+		case pg.DbValueArrayInt32:
+			result[i] = fromOptionSlice(v.ArrayInt32())
+		case pg.DbValueArrayInt64:
+			result[i] = fromOptionSlice(v.ArrayInt64())
 		// case pg.DbValueArrayDecimal:
 		// 	result[i] = v.ArrayDecimal()
-		// case pg.DbValueArrayStr:
-		// 	result[i] = v.ArrayStr()
+		case pg.DbValueArrayStr:
+			result[i] = fromOptionSlice(v.ArrayStr())
 
 		// TODO: time.duration
 		// case pg.DbValueInterval:
@@ -406,4 +412,22 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 		return reflect.TypeFor[any]().Elem()
 	}
 	panic("invalid db column type of " + string(typ))
+}
+
+func toOptionSlice[T any](v []T) []wittypes.Option[T] {
+	values := make([]wittypes.Option[T], len(v))
+	for i, x := range v {
+		values[i] = wittypes.Some(x)
+	}
+	return values
+}
+
+func fromOptionSlice[T any](v []wittypes.Option[T]) []T {
+	values := make([]T, len(v))
+	for i, x := range v {
+		if x.IsSome() {
+			values[i] = x.Some()
+		}
+	}
+	return values
 }
