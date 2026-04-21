@@ -14,7 +14,7 @@ func TestToOptionSlice(t *testing.T) {
 		wittypes.Some("b"),
 		wittypes.Some("c"),
 	}
-	assert.Equal(t, got, want)
+	assert.Equal(t, want, got)
 }
 
 func TestFromOptionSlice(t *testing.T) {
@@ -24,5 +24,5 @@ func TestFromOptionSlice(t *testing.T) {
 		wittypes.Some(3),
 	})
 	want := []int{1, 2, 3}
-	assert.Equal(t, got, want)
+	assert.Equal(t, want, got)
 }
