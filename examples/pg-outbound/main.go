@@ -36,6 +36,7 @@ func init() {
 			return
 		}
 
+		// Testing Array parsing
 		var x []int32
 		if err := db.QueryRow(`SELECT ARRAY[200, 404]`).Scan(&x); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -46,6 +47,7 @@ func init() {
 			return
 		}
 
+		// Testing Range parsing
 		var rangeInt32 pg.Int32Range
 		if err := db.QueryRow(`SELECT int4range(10, 20)`).Scan(&rangeInt32); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -84,7 +86,8 @@ func init() {
 	})
 }
 
-// temp function to make developing types easier.
+// temp function to make developing types easier. I'll delete this or the
+// migration file before merging.
 func setupDB(db *sql.DB) error {
 	if _, err := db.Exec(`DROP TABLE pets`); err != nil {
 		return err
