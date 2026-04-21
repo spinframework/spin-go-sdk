@@ -381,8 +381,8 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 	case uint8(pg.DbDataTypeUuid):
 		return reflect.TypeFor[string]()
 	case uint8(pg.DbDataTypeDecimal):
-		// TODO: Is this okay to leave as a string?
-		return reflect.TypeFor[string]()
+		// TODO:
+		// return reflect.TypeFor[string]()
 	case uint8(pg.DbDataTypeBinary):
 		return reflect.TypeFor[[]byte]()
 	case uint8(pg.DbDataTypeJsonb):
