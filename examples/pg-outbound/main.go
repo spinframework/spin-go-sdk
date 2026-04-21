@@ -46,6 +46,20 @@ func init() {
 			return
 		}
 
+		var rangeInt32 pg.Int32Range
+		if err := db.QueryRow(`SELECT int4range(10, 20)`).Scan(&rangeInt32); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if *rangeInt32.Lower != 10 {
+			http.Error(w, fmt.Sprintf("Error parsing lower range, got: %v", *rangeInt32.Lower), http.StatusInternalServerError)
+			return
+		}
+		if *rangeInt32.Upper != 20 {
+			http.Error(w, fmt.Sprintf("Error parsing upper range, got: %v", *rangeInt32.Upper), http.StatusInternalServerError)
+			return
+		}
+
 		_, err := db.Exec("INSERT INTO pets (id, name, prey, is_finicky, timestamp) VALUES ($1, 'Maya', $2, $3, $4);", int32(4), "bananas", true, time.Now())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

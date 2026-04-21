@@ -242,6 +242,9 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 		return pg.MakeParameterValueBinary(v)
 	case []string:
 		return pg.MakeParameterValueArrayStr(toOptionSlice(v))
+	case Int32Range:
+		witVal, _ := v.Value()
+		return pg.MakeParameterValueRangeInt32(witVal.(wittypes.Tuple2[wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]], wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]]]))
 	case []int32:
 		return pg.MakeParameterValueArrayInt32(toOptionSlice(v))
 	case []int64:
@@ -327,8 +330,8 @@ func toRow(row []pg.DbValue) []any {
 		// 	result[i] = v.Jsonb()
 		// case pg.DbValueDecimal:
 		// 	result[i] = v.Decimal()
-		// case pg.DbValueRangeInt32:
-		// 	result[i] = v.RangeInt32()
+		case pg.DbValueRangeInt32:
+			result[i] = v.RangeInt32()
 		// case pg.DbValueRangeInt64:
 		// 	result[i] = v.RangeInt64()
 		// case pg.DbValueRangeDecimal:
@@ -392,7 +395,7 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 	case uint8(pg.DbDataTypeInterval):
 		// TODO
 	case uint8(pg.DbDataTypeRangeInt32):
-		// TODO
+		return reflect.TypeFor[Int32Range]()
 	case uint8(pg.DbDataTypeRangeInt64):
 		// TODO
 	case uint8(pg.DbDataTypeRangeDecimal):
