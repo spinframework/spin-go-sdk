@@ -41,7 +41,7 @@ func (d *connector) Driver() driver.Driver {
 
 // Open returns a new connection to the database.
 func (d *connector) Open(name string) (driver.Conn, error) {
-	results := pg.ConnectionOpen(name)
+	results := pg.ConnectionOpenAsync(name)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
