@@ -6,9 +6,10 @@ import (
 	"database/sql/driver"
 	"errors"
 	"io"
+	"iter"
 
+	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/spin_sqlite_3_1_0_sqlite"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_sqlite"
 )
 
 // Open returns a new connection to the database.
@@ -23,6 +24,7 @@ type conn struct {
 
 // Close the connection.
 func (c *conn) Close() error {
+	c.spinConn.Drop()
 	return nil
 }
 
@@ -58,7 +60,7 @@ func (d *connector) Driver() driver.Driver {
 
 // Open returns a new connection to the database.
 func (d *connector) Open(name string) (driver.Conn, error) {
-	results := sqlite.ConnectionOpen(name)
+	results := sqlite.ConnectionOpenAsync(name)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
@@ -77,10 +79,10 @@ func (d *connector) Close() error {
 
 type rows struct {
 	columns []string
-	pos     int
-	len     int
-	rows    [][]any
-	closed  bool
+	next    []any
+	pull    func() ([]any, bool)
+	stop    func()
+	result  error
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -92,29 +94,31 @@ func (r *rows) Columns() []string {
 
 // Close closes the rows iterator.
 func (r *rows) Close() error {
-	r.rows = nil
-	r.pos = 0
-	r.len = 0
-	r.closed = true
+	r.stop()
+	r.stop = nil
+	r.pull = nil
+	r.next = nil
+	r.result = io.EOF
 	return nil
 }
 
 // Next moves the cursor to the next row.
 func (r *rows) Next(dest []driver.Value) error {
 	if !r.HasNextResultSet() {
-		return io.EOF
+		return r.result
 	}
+	next := r.next
+	r.next, _ = r.pull()
 	for i := 0; i != len(r.columns); i++ {
-		dest[i] = driver.Value(r.rows[r.pos][i])
+		dest[i] = driver.Value(next[i])
 	}
-	r.pos++
 	return nil
 }
 
 // HasNextResultSet is called at the end of the current result set and
 // reports whether there is another result set after the current one.
 func (r *rows) HasNextResultSet() bool {
-	return r.pos < r.len
+	return r.next != nil
 }
 
 // NextResultSet advances the driver to the next result set even
@@ -123,10 +127,10 @@ func (r *rows) HasNextResultSet() bool {
 // NextResultSet should return io.EOF when there are no more result sets.
 func (r *rows) NextResultSet() error {
 	if r.HasNextResultSet() {
-		r.pos++
+		r.next, _ = r.pull()
 		return nil
 	}
-	return io.EOF // Per interface spec.
+	return r.result
 }
 
 type stmt struct {
@@ -155,28 +159,43 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 		sqliteParams[i] = toSqliteValue(v)
 	}
 
-	results := s.conn.spinConn.Execute(s.query, sqliteParams)
+	results := s.conn.spinConn.ExecuteAsync(s.query, sqliteParams)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
 
-	rowLen := len(results.Ok().Rows)
-	allRows := make([][]any, rowLen)
-	for rowNum, row := range results.Ok().Rows {
-		allRows[rowNum] = toRow(row.Values)
-	}
+	tuple := results.Ok()
 
-	cols := results.Ok().Columns
-	colNames := make([]string, len(cols))
-	for i, c := range cols {
-		colNames[i] = c
-	}
+	columns := tuple.F0
 
 	rows := &rows{
-		columns: colNames,
-		rows:    allRows,
-		len:     int(rowLen),
+		columns: columns,
 	}
+
+	rowsStream := tuple.F1
+	rowsResult := tuple.F2
+
+	rows.pull, rows.stop = iter.Pull(func(yield func([]any) bool) {
+		defer rowsStream.Drop()
+		defer rowsResult.Drop()
+
+		buffer := []sqlite.RowResult{sqlite.RowResult{}}
+		for rowsStream.Read(buffer) == 1 {
+			if !yield(toRow(buffer[0].Values)) {
+				break
+			}
+		}
+
+		result := rowsResult.Read()
+		if result.IsOk() {
+			rows.result = io.EOF
+		} else {
+			rows.result = toError(result.Err())
+		}
+	})
+
+	rows.next, _ = rows.pull()
+
 	return rows, nil
 }
 
@@ -188,12 +207,19 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 		sqliteParams[i] = toSqliteValue(v)
 	}
 
-	queryResult := s.conn.spinConn.Execute(s.query, sqliteParams)
+	queryResult := s.conn.spinConn.ExecuteAsync(s.query, sqliteParams)
 	if queryResult.IsErr() {
 		return &result{}, toError(queryResult.Err())
 	}
 
-	return &result{}, nil
+	tuple := queryResult.Ok()
+	tuple.F1.Drop()
+
+	if rowsResult := tuple.F2.Read(); rowsResult.IsErr() {
+		return nil, toError(rowsResult.Err())
+	} else {
+		return &result{}, nil
+	}
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
