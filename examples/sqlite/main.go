@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
@@ -37,7 +36,8 @@ func init() {
 		for rows.Next() {
 			var pet Pet
 			if err := rows.Scan(&pet.ID, &pet.Name, &pet.Prey, &pet.IsFinicky); err != nil {
-				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 			pets = append(pets, &pet)
 		}
