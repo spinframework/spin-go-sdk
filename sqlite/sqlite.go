@@ -217,9 +217,12 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	if rowsResult := tuple.F2.Read(); rowsResult.IsErr() {
 		return nil, toError(rowsResult.Err())
-	} else {
-		return &result{}, nil
 	}
+
+	return &result{
+		insertID:     s.conn.spinConn.LastInsertRowidAsync(),
+		rowsAffected: int64(s.conn.spinConn.ChangesAsync()),
+	}, nil
 }
 
 // ColumnConverter returns GlobalParameterConverter to prevent using driver.DefaultParameterConverter.
@@ -227,14 +230,16 @@ func (s *stmt) ColumnConverter(_ int) driver.ValueConverter {
 	return spindb.GlobalParameterConverter
 }
 
-type result struct{}
+type result struct {
+	insertID, rowsAffected int64
+}
 
 func (r result) LastInsertId() (int64, error) {
-	return -1, errors.New("LastInsertId is unsupported by this driver")
+	return r.insertID, nil
 }
 
 func (r result) RowsAffected() (int64, error) {
-	return -1, errors.New("RowsAffected is unsupported by this driver")
+	return r.rowsAffected, nil
 }
 
 func toSqliteValue(x any) sqlite.Value {
