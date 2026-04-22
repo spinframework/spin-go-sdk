@@ -31,6 +31,7 @@ func init() {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer rows.Close()
 
 		var pets []*Pet
 		for rows.Next() {
@@ -41,7 +42,13 @@ func init() {
 			}
 			pets = append(pets, &pet)
 		}
-		json.NewEncoder(w).Encode(pets)
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if err := json.NewEncoder(w).Encode(pets); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 }
 
