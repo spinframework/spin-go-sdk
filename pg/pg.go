@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"io"
+	"iter"
 	"reflect"
 	"time"
 
@@ -96,18 +97,13 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
 
-	results := s.conn.spinConn.Query(s.query, rdbmsParams)
+	results := s.conn.spinConn.QueryAsync(s.query, rdbmsParams)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
 
-	rowLen := len(results.Ok().Rows)
-	allRows := make([][]any, rowLen)
-	for rowNum, row := range results.Ok().Rows {
-		allRows[rowNum] = toRow(row)
-	}
-
-	cols := results.Ok().Columns
+	tuple := results.Ok()
+	cols := tuple.F0
 	colNames := make([]string, len(cols))
 	colTypes := make([]uint8, len(cols))
 	for i, c := range cols {
@@ -118,9 +114,30 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	rows := &rows{
 		columns:    colNames,
 		columnType: colTypes,
-		rows:       allRows,
-		len:        int(rowLen),
 	}
+
+	rowsStream := tuple.F1
+	rowsResult := tuple.F2
+	rows.pull, rows.stop = iter.Pull(func(yield func([]any) bool) {
+		defer rowsStream.Drop()
+		defer rowsResult.Drop()
+
+		buffer := [][]pg.DbValue{nil}
+		for rowsStream.Read(buffer) == 1 {
+			if !yield(toRow(buffer[0])) {
+				break
+			}
+		}
+
+		result := rowsResult.Read()
+		if result.IsOk() {
+			rows.result = io.EOF
+		} else {
+			rows.result = toError(result.Err())
+		}
+	})
+
+	rows.next, _ = rows.pull()
 	return rows, nil
 }
 
@@ -132,7 +149,7 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
 
-	queryResult := s.conn.spinConn.Execute(s.query, rdbmsParams)
+	queryResult := s.conn.spinConn.ExecuteAsync(s.query, rdbmsParams)
 	if queryResult.IsErr() {
 		return &result{}, toError(queryResult.Err())
 	}
@@ -160,10 +177,10 @@ func (r result) RowsAffected() (int64, error) {
 type rows struct {
 	columns    []string
 	columnType []uint8
-	pos        int
-	len        int
-	rows       [][]any
-	closed     bool
+	next       []any
+	pull       func() ([]any, bool)
+	stop       func()
+	result     error
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -177,29 +194,31 @@ func (r *rows) Columns() []string {
 
 // Close closes the rows iterator.
 func (r *rows) Close() error {
-	r.rows = nil
-	r.pos = 0
-	r.len = 0
-	r.closed = true
+	r.stop()
+	r.stop = nil
+	r.pull = nil
+	r.next = nil
+	r.result = io.EOF
 	return nil
 }
 
 // Next moves the cursor to the next row.
 func (r *rows) Next(dest []driver.Value) error {
 	if !r.HasNextResultSet() {
-		return io.EOF
+		return r.result
 	}
+	next := r.next
+	r.next, _ = r.pull()
 	for i := 0; i != len(r.columns); i++ {
-		dest[i] = driver.Value(r.rows[r.pos][i])
+		dest[i] = driver.Value(next[i])
 	}
-	r.pos++
 	return nil
 }
 
 // HasNextResultSet is called at the end of the current result set and
 // reports whether there is another result set after the current one.
 func (r *rows) HasNextResultSet() bool {
-	return r.pos < r.len
+	return r.next != nil
 }
 
 // NextResultSet advances the driver to the next result set even
@@ -208,10 +227,10 @@ func (r *rows) HasNextResultSet() bool {
 // NextResultSet should return io.EOF when there are no more result sets.
 func (r *rows) NextResultSet() error {
 	if r.HasNextResultSet() {
-		r.pos++
+		r.next, _ = r.pull()
 		return nil
 	}
-	return io.EOF // Per interface spec.
+	return r.result
 }
 
 // ColumnTypeScanType returns the value type that can be used to scan types into.
