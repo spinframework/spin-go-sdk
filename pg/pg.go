@@ -62,6 +62,7 @@ func (c *conn) Prepare(query string) (driver.Stmt, error) {
 }
 
 func (c *conn) Close() error {
+	c.spinConn.Drop()
 	return nil
 }
 
