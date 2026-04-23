@@ -7,7 +7,7 @@ name = "hello-kv"
 version = "1.0.0"
 
 [[trigger.http]]
-route = "/hello"
+route = "/..."
 component = "hello"
 
 [component.hello]
