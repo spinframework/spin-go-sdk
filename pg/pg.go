@@ -343,16 +343,13 @@ func toError(err pg.Error) error {
 				}
 			}
 			return pgErr
-		default:
-			panic("unknown query error from runtime")
 		}
 	case pg.ErrorValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
 	case pg.ErrorOther:
 		return errors.New(err.Other())
-	default:
-		panic("unknown error from runtime")
 	}
+	panic("unknown error from runtime")
 }
 
 func toRow(row []pg.DbValue) []any {
