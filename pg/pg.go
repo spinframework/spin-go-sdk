@@ -415,7 +415,7 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 	case uint8(pg.DbDataTypeRangeInt32):
 		return reflect.TypeFor[Int32Range]()
 	case uint8(pg.DbDataTypeRangeInt64):
-		// TODO
+		return reflect.TypeFor[Int64Range]()
 	case uint8(pg.DbDataTypeRangeDecimal):
 		// TODO
 	case uint8(pg.DbDataTypeArrayInt32):
