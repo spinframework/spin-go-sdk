@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"time"
@@ -290,6 +291,30 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 	}
 }
 
+// QueryDbError represents a structured PostgreSQL database error returned by the runtime.
+// It is returned when a query fails with a structured error from Postgres (as opposed
+// to a plain-text error message).
+type QueryDbError struct {
+	// Severity is the severity level of the error (e.g. "ERROR", "FATAL", "WARNING").
+	Severity string
+	// Code is the PostgreSQL error code (e.g. "23505" for unique_violation).
+	Code string
+	// Message is the primary human-readable error message.
+	Message string
+	// Detail is an optional secondary message providing more detail about the error.
+	Detail string
+	// Extras contains any additional key-value error information provided by Postgres.
+	Extras [][2]string
+}
+
+func (e *QueryDbError) Error() string {
+	msg := fmt.Sprintf("%s (%s): %s", e.Severity, e.Code, e.Message)
+	if e.Detail != "" {
+		msg += ": " + e.Detail
+	}
+	return msg
+}
+
 func toError(err pg.Error) error {
 	switch err.Tag() {
 	case pg.ErrorBadParameter:
@@ -297,7 +322,30 @@ func toError(err pg.Error) error {
 	case pg.ErrorConnectionFailed:
 		return errors.New(err.ConnectionFailed())
 	case pg.ErrorQueryFailed:
-		return errors.New(err.QueryFailed().Text())
+		qf := err.QueryFailed()
+		switch qf.Tag() {
+		case pg.QueryErrorText:
+			return errors.New(qf.Text())
+		case pg.QueryErrorDbError:
+			dbErr := qf.DbError()
+			pgErr := &QueryDbError{
+				Severity: dbErr.Severity,
+				Code:     dbErr.Code,
+				Message:  dbErr.Message,
+			}
+			if dbErr.Detail.IsSome() {
+				pgErr.Detail = dbErr.Detail.Some()
+			}
+			if len(dbErr.Extras) > 0 {
+				pgErr.Extras = make([][2]string, len(dbErr.Extras))
+				for i, e := range dbErr.Extras {
+					pgErr.Extras[i] = [2]string{e.F0, e.F1}
+				}
+			}
+			return pgErr
+		default:
+			panic("unknown query error from runtime")
+		}
 	case pg.ErrorValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
 	case pg.ErrorOther:
