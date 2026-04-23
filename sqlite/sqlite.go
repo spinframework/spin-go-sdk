@@ -6,10 +6,10 @@ import (
 	"database/sql/driver"
 	"errors"
 	"io"
-	"iter"
 
 	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/spin_sqlite_3_1_0_sqlite"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Open returns a new connection to the database.
@@ -80,8 +80,8 @@ func (d *connector) Close() error {
 type rows struct {
 	columns []string
 	next    []any
-	pull    func() ([]any, bool)
-	stop    func()
+	stream  *wit.StreamReader[sqlite.RowResult]
+	future  *wit.FutureReader[wit.Result[wit.Unit, sqlite.Error]]
 	result  error
 }
 
@@ -94,12 +94,28 @@ func (r *rows) Columns() []string {
 
 // Close closes the rows iterator.
 func (r *rows) Close() error {
-	r.stop()
-	r.stop = nil
-	r.pull = nil
+	r.stream.Drop()
+	r.future.Drop()
+	r.stream = nil
+	r.future = nil
 	r.next = nil
 	r.result = io.EOF
 	return nil
+}
+
+func (r *rows) pull() []any {
+	buffer := []sqlite.RowResult{sqlite.RowResult{}}
+	if r.stream.Read(buffer) == 1 {
+		return toRow(buffer[0].Values)
+	} else {
+		result := r.future.Read()
+		if result.IsOk() {
+			r.result = io.EOF
+		} else {
+			r.result = toError(result.Err())
+		}
+		return nil
+	}
 }
 
 // Next moves the cursor to the next row.
@@ -108,7 +124,7 @@ func (r *rows) Next(dest []driver.Value) error {
 		return r.result
 	}
 	next := r.next
-	r.next, _ = r.pull()
+	r.next = r.pull()
 	for i := 0; i != len(r.columns); i++ {
 		dest[i] = driver.Value(next[i])
 	}
@@ -127,7 +143,7 @@ func (r *rows) HasNextResultSet() bool {
 // NextResultSet should return io.EOF when there are no more result sets.
 func (r *rows) NextResultSet() error {
 	if r.HasNextResultSet() {
-		r.next, _ = r.pull()
+		r.next = r.pull()
 		return nil
 	}
 	return r.result
@@ -166,35 +182,13 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 
 	tuple := results.Ok()
 
-	columns := tuple.F0
-
 	rows := &rows{
-		columns: columns,
+		columns: tuple.F0,
+		stream:  tuple.F1,
+		future:  tuple.F2,
 	}
 
-	rowsStream := tuple.F1
-	rowsResult := tuple.F2
-
-	rows.pull, rows.stop = iter.Pull(func(yield func([]any) bool) {
-		defer rowsStream.Drop()
-		defer rowsResult.Drop()
-
-		buffer := []sqlite.RowResult{sqlite.RowResult{}}
-		for rowsStream.Read(buffer) == 1 {
-			if !yield(toRow(buffer[0].Values)) {
-				break
-			}
-		}
-
-		result := rowsResult.Read()
-		if result.IsOk() {
-			rows.result = io.EOF
-		} else {
-			rows.result = toError(result.Err())
-		}
-	})
-
-	rows.next, _ = rows.pull()
+	rows.next = rows.pull()
 
 	return rows, nil
 }
