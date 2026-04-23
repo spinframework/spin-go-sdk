@@ -6,12 +6,14 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
+	"time"
 
+	pg "github.com/spinframework/spin-go-sdk/v3/imports/spin_postgres_4_2_0_postgres"
 	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
-	pg "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_postgres"
-	rdbmstypes "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_rdbms_types"
+	wittypes "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // Open returns a new connection to the database.
@@ -40,7 +42,7 @@ func (d *connector) Driver() driver.Driver {
 
 // Open returns a new connection to the database.
 func (d *connector) Open(name string) (driver.Conn, error) {
-	results := pg.ConnectionOpen(name)
+	results := pg.ConnectionOpenAsync(name)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
@@ -61,6 +63,7 @@ func (c *conn) Prepare(query string) (driver.Stmt, error) {
 }
 
 func (c *conn) Close() error {
+	c.spinConn.Drop()
 	return nil
 }
 
@@ -94,31 +97,28 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
 
-	results := s.conn.spinConn.Query(s.query, rdbmsParams)
+	results := s.conn.spinConn.QueryAsync(s.query, rdbmsParams)
 	if results.IsErr() {
 		return nil, toError(results.Err())
 	}
 
-	rowLen := len(results.Ok().Rows)
-	allRows := make([][]any, rowLen)
-	for rowNum, row := range results.Ok().Rows {
-		allRows[rowNum] = toRow(row)
-	}
-
-	cols := results.Ok().Columns
+	tuple := results.Ok()
+	cols := tuple.F0
 	colNames := make([]string, len(cols))
 	colTypes := make([]uint8, len(cols))
 	for i, c := range cols {
 		colNames[i] = c.Name
-		colTypes[i] = uint8(c.DataType)
+		colTypes[i] = c.DataType.Tag()
 	}
 
 	rows := &rows{
 		columns:    colNames,
 		columnType: colTypes,
-		rows:       allRows,
-		len:        int(rowLen),
+		stream:     tuple.F1,
+		future:     tuple.F2,
 	}
+
+	rows.next = rows.pull()
 	return rows, nil
 }
 
@@ -130,7 +130,7 @@ func (s *stmt) Exec(args []driver.Value) (driver.Result, error) {
 		rdbmsParams[i] = toRdbmsParameterValue(v)
 	}
 
-	queryResult := s.conn.spinConn.Execute(s.query, rdbmsParams)
+	queryResult := s.conn.spinConn.ExecuteAsync(s.query, rdbmsParams)
 	if queryResult.IsErr() {
 		return &result{}, toError(queryResult.Err())
 	}
@@ -158,10 +158,10 @@ func (r result) RowsAffected() (int64, error) {
 type rows struct {
 	columns    []string
 	columnType []uint8
-	pos        int
-	len        int
-	rows       [][]any
-	closed     bool
+	next       []any
+	stream     *wittypes.StreamReader[[]pg.DbValue]
+	future     *wittypes.FutureReader[wittypes.Result[wittypes.Unit, pg.Error]]
+	result     error
 }
 
 var _ driver.Rows = (*rows)(nil)
@@ -175,29 +175,46 @@ func (r *rows) Columns() []string {
 
 // Close closes the rows iterator.
 func (r *rows) Close() error {
-	r.rows = nil
-	r.pos = 0
-	r.len = 0
-	r.closed = true
+	r.stream.Drop()
+	r.future.Drop()
+	r.stream = nil
+	r.future = nil
+	r.next = nil
+	r.result = io.EOF
+	return nil
+}
+
+func (r *rows) pull() []any {
+	buffer := [][]pg.DbValue{nil}
+	if r.stream.Read(buffer) == 1 {
+		return toRow(buffer[0])
+	}
+	result := r.future.Read()
+	if result.IsOk() {
+		r.result = io.EOF
+	} else {
+		r.result = toError(result.Err())
+	}
 	return nil
 }
 
 // Next moves the cursor to the next row.
 func (r *rows) Next(dest []driver.Value) error {
 	if !r.HasNextResultSet() {
-		return io.EOF
+		return r.result
 	}
+	next := r.next
+	r.next = r.pull()
 	for i := 0; i != len(r.columns); i++ {
-		dest[i] = driver.Value(r.rows[r.pos][i])
+		dest[i] = driver.Value(next[i])
 	}
-	r.pos++
 	return nil
 }
 
 // HasNextResultSet is called at the end of the current result set and
 // reports whether there is another result set after the current one.
 func (r *rows) HasNextResultSet() bool {
-	return r.pos < r.len
+	return r.next != nil
 }
 
 // NextResultSet advances the driver to the next result set even
@@ -206,10 +223,10 @@ func (r *rows) HasNextResultSet() bool {
 // NextResultSet should return io.EOF when there are no more result sets.
 func (r *rows) NextResultSet() error {
 	if r.HasNextResultSet() {
-		r.pos++
+		r.next = r.pull()
 		return nil
 	}
-	return io.EOF // Per interface spec.
+	return r.result
 }
 
 // ColumnTypeScanType returns the value type that can be used to scan types into.
@@ -220,87 +237,183 @@ func (r *rows) ColumnTypeScanType(index int) reflect.Type {
 func toRdbmsParameterValue(x any) pg.ParameterValue {
 	switch v := x.(type) {
 	case bool:
-		return rdbmstypes.MakeParameterValueBoolean(v)
+		return pg.MakeParameterValueBoolean(v)
 	case int8:
-		return rdbmstypes.MakeParameterValueInt8(v)
+		return pg.MakeParameterValueInt8(v)
 	case int16:
-		return rdbmstypes.MakeParameterValueInt16(v)
+		return pg.MakeParameterValueInt16(v)
 	case int32:
-		return rdbmstypes.MakeParameterValueInt32(v)
+		return pg.MakeParameterValueInt32(v)
 	case int64:
-		return rdbmstypes.MakeParameterValueInt64(v)
+		return pg.MakeParameterValueInt64(v)
 	case int:
-		return rdbmstypes.MakeParameterValueInt64(int64(v))
-	case uint8:
-		return rdbmstypes.MakeParameterValueUint8(v)
-	case uint16:
-		return rdbmstypes.MakeParameterValueUint16(v)
-	case uint32:
-		return rdbmstypes.MakeParameterValueUint32(v)
-	case uint64:
-		return rdbmstypes.MakeParameterValueUint64(v)
+		return pg.MakeParameterValueInt64(int64(v))
 	case float32:
-		return rdbmstypes.MakeParameterValueFloating32(v)
+		return pg.MakeParameterValueFloating32(v)
 	case float64:
-		return rdbmstypes.MakeParameterValueFloating64(v)
+		return pg.MakeParameterValueFloating64(v)
 	case string:
-		return rdbmstypes.MakeParameterValueStr(v)
+		return pg.MakeParameterValueStr(v)
 	case []byte:
-		return rdbmstypes.MakeParameterValueBinary(v)
+		return pg.MakeParameterValueBinary(v)
+	case []string:
+		return pg.MakeParameterValueArrayStr(toOptionSlice(v))
+	case Int32Range:
+		witVal, _ := v.Value()
+		return pg.MakeParameterValueRangeInt32(witVal.(wittypes.Tuple2[wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]], wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]]]))
+	case Int64Range:
+		witVal, _ := v.Value()
+		return pg.MakeParameterValueRangeInt64(witVal.(wittypes.Tuple2[wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]], wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]]]))
+	case []int32:
+		return pg.MakeParameterValueArrayInt32(toOptionSlice(v))
+	case []int64:
+		return pg.MakeParameterValueArrayInt64(toOptionSlice(v))
+	case time.Time:
+		v = v.UTC()
+		return pg.MakeParameterValueDatetime(wittypes.Tuple7[int32, uint8, uint8, uint8, uint8, uint8, uint32]{
+			F0: int32(v.Year()),
+			F1: uint8(v.Month()),
+			F2: uint8(v.Day()),
+			F3: uint8(v.Hour()),
+			F4: uint8(v.Minute()),
+			F5: uint8(v.Second()),
+			F6: uint32(v.Nanosecond()),
+		})
+	case time.Duration:
+		// TODO: does this need to be parsed into Micros/Days/Months?
+		return pg.MakeParameterValueInterval(pg.Interval{
+			Micros: v.Microseconds(),
+		})
 	case nil:
-		return rdbmstypes.MakeParameterValueDbNull()
+		return pg.MakeParameterValueDbNull()
 	default:
 		panic("unknown value type")
 	}
 }
 
-func toError(err pg.Error) error {
-	switch err.Tag() {
-	case rdbmstypes.ErrorBadParameter:
-		return errors.New(err.BadParameter())
-	case rdbmstypes.ErrorConnectionFailed:
-		return errors.New(err.ConnectionFailed())
-	case rdbmstypes.ErrorQueryFailed:
-		return errors.New(err.QueryFailed())
-	case rdbmstypes.ErrorValueConversionFailed:
-		return errors.New(err.ValueConversionFailed())
-	default:
-		// TODO: not sure if using "Other" as the default is appropriate
-		return errors.New(err.Other())
-	}
+// QueryDbError represents a structured PostgreSQL database error returned by the runtime.
+// It is returned when a query fails with a structured error from Postgres (as opposed
+// to a plain-text error message).
+type QueryDbError struct {
+	// Severity is the severity level of the error (e.g. "ERROR", "FATAL", "WARNING").
+	Severity string
+	// Code is the PostgreSQL error code (e.g. "23505" for unique_violation).
+	Code string
+	// Message is the primary human-readable error message.
+	Message string
+	// Detail is an optional secondary message providing more detail about the error.
+	Detail string
+	// Extras contains any additional key-value error information provided by Postgres.
+	Extras [][2]string
 }
 
-func toRow(row []rdbmstypes.DbValue) []any {
+func (e *QueryDbError) Error() string {
+	msg := fmt.Sprintf("%s (%s): %s", e.Severity, e.Code, e.Message)
+	if e.Detail != "" {
+		msg += ": " + e.Detail
+	}
+	return msg
+}
+
+func toError(err pg.Error) error {
+	switch err.Tag() {
+	case pg.ErrorBadParameter:
+		return errors.New(err.BadParameter())
+	case pg.ErrorConnectionFailed:
+		return errors.New(err.ConnectionFailed())
+	case pg.ErrorQueryFailed:
+		qf := err.QueryFailed()
+		switch qf.Tag() {
+		case pg.QueryErrorText:
+			return errors.New(qf.Text())
+		case pg.QueryErrorDbError:
+			dbErr := qf.DbError()
+			pgErr := &QueryDbError{
+				Severity: dbErr.Severity,
+				Code:     dbErr.Code,
+				Message:  dbErr.Message,
+			}
+			if dbErr.Detail.IsSome() {
+				pgErr.Detail = dbErr.Detail.Some()
+			}
+			if len(dbErr.Extras) > 0 {
+				pgErr.Extras = make([][2]string, len(dbErr.Extras))
+				for i, e := range dbErr.Extras {
+					pgErr.Extras[i] = [2]string{e.F0, e.F1}
+				}
+			}
+			return pgErr
+		}
+	case pg.ErrorValueConversionFailed:
+		return errors.New(err.ValueConversionFailed())
+	case pg.ErrorOther:
+		return errors.New(err.Other())
+	}
+	panic("unknown error from runtime")
+}
+
+func toRow(row []pg.DbValue) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
 		switch v.Tag() {
-		case rdbmstypes.DbValueBoolean:
+		case pg.DbValueBoolean:
 			result[i] = v.Boolean()
-		case rdbmstypes.DbValueInt8:
+		case pg.DbValueInt8:
 			result[i] = v.Int8()
-		case rdbmstypes.DbValueInt16:
+		case pg.DbValueInt16:
 			result[i] = v.Int16()
-		case rdbmstypes.DbValueInt32:
+		case pg.DbValueInt32:
 			result[i] = v.Int32()
-		case rdbmstypes.DbValueInt64:
+		case pg.DbValueInt64:
 			result[i] = v.Int64()
-		case rdbmstypes.DbValueUint8:
-			result[i] = v.Uint8()
-		case rdbmstypes.DbValueUint16:
-			result[i] = v.Uint16()
-		case rdbmstypes.DbValueUint32:
-			result[i] = v.Uint32()
-		case rdbmstypes.DbValueUint64:
-			result[i] = v.Uint64()
-		case rdbmstypes.DbValueFloating32:
+		case pg.DbValueFloating32:
 			result[i] = v.Floating32()
-		case rdbmstypes.DbValueFloating64:
+		case pg.DbValueFloating64:
 			result[i] = v.Floating64()
-		case rdbmstypes.DbValueStr:
+		case pg.DbValueStr:
 			result[i] = v.Str()
-		case rdbmstypes.DbValueBinary:
+		case pg.DbValueBinary:
 			result[i] = v.Binary()
-		case rdbmstypes.DbValueDbNull:
+		case pg.DbValueDate:
+			d := v.Date()
+			result[i] = time.Date(int(d.F0), time.Month(d.F1), int(d.F2), 0, 0, 0, 0, time.UTC)
+		case pg.DbValueTime:
+			t := v.Time()
+			result[i] = time.Date(0, 1, 1, int(t.F0), int(t.F1), int(t.F2), int(t.F3), time.UTC)
+		case pg.DbValueDatetime:
+			dt := v.Datetime()
+			result[i] = time.Date(int(dt.F0), time.Month(dt.F1), int(dt.F2), int(dt.F3), int(dt.F4), int(dt.F5), int(dt.F6), time.UTC)
+		case pg.DbValueTimestamp:
+			result[i] = time.Unix(v.Timestamp(), 0).UTC()
+		case pg.DbValueUuid:
+			result[i] = v.Uuid()
+
+		// TODO make these all go types
+		// case pg.DbValueJsonb:
+		// 	result[i] = v.Jsonb()
+		// case pg.DbValueDecimal:
+		// 	result[i] = v.Decimal()
+		case pg.DbValueRangeInt32:
+			result[i] = v.RangeInt32()
+		// case pg.DbValueRangeInt64:
+		// 	result[i] = v.RangeInt64()
+		// case pg.DbValueRangeDecimal:
+		// 	result[i] = v.RangeDecimal()
+		case pg.DbValueArrayInt32:
+			result[i] = fromOptionSlice(v.ArrayInt32())
+		case pg.DbValueArrayInt64:
+			result[i] = fromOptionSlice(v.ArrayInt64())
+		// case pg.DbValueArrayDecimal:
+		// 	result[i] = v.ArrayDecimal()
+		case pg.DbValueArrayStr:
+			result[i] = fromOptionSlice(v.ArrayStr())
+
+		// TODO: time.duration
+		// case pg.DbValueInterval:
+		// 	result[i] = v.Interval()
+		case pg.DbValueUnsupported:
+			result[i] = v.Unsupported()
+		case pg.DbValueDbNull:
 			result[i] = nil
 		default:
 			panic("unknown value type")
@@ -312,30 +425,72 @@ func toRow(row []rdbmstypes.DbValue) []any {
 
 func colTypeToReflectType(typ uint8) reflect.Type {
 	switch typ {
-	case uint8(rdbmstypes.DbDataTypeBoolean):
-		return reflect.TypeOf(false)
-	case uint8(rdbmstypes.DbDataTypeInt8):
-		return reflect.TypeOf(int8(0))
-	case uint8(rdbmstypes.DbDataTypeInt16):
-		return reflect.TypeOf(int16(0))
-	case uint8(rdbmstypes.DbDataTypeInt32):
-		return reflect.TypeOf(int32(0))
-	case uint8(rdbmstypes.DbDataTypeInt64):
-		return reflect.TypeOf(int64(0))
-	case uint8(rdbmstypes.DbDataTypeUint8):
-		return reflect.TypeOf(uint8(0))
-	case uint8(rdbmstypes.DbDataTypeUint16):
-		return reflect.TypeOf(uint16(0))
-	case uint8(rdbmstypes.DbDataTypeUint32):
-		return reflect.TypeOf(uint32(0))
-	case uint8(rdbmstypes.DbDataTypeUint64):
-		return reflect.TypeOf(uint64(0))
-	case uint8(rdbmstypes.DbDataTypeStr):
-		return reflect.TypeOf("")
-	case uint8(rdbmstypes.DbDataTypeBinary):
-		return reflect.TypeOf(new([]byte))
-	case uint8(rdbmstypes.DbDataTypeOther):
-		return reflect.TypeOf(new(any)).Elem()
+	case pg.DbDataTypeBoolean:
+		return reflect.TypeFor[bool]()
+	case pg.DbDataTypeInt8:
+		return reflect.TypeFor[int8]()
+	case pg.DbDataTypeInt16:
+		return reflect.TypeFor[int16]()
+	case pg.DbDataTypeInt32:
+		return reflect.TypeFor[int32]()
+	case pg.DbDataTypeInt64:
+		return reflect.TypeFor[int64]()
+	case pg.DbDataTypeFloating32:
+		return reflect.TypeFor[float32]()
+	case pg.DbDataTypeFloating64:
+		return reflect.TypeFor[float64]()
+	case pg.DbDataTypeStr:
+		return reflect.TypeFor[string]()
+	case pg.DbDataTypeUuid:
+		return reflect.TypeFor[string]()
+	case pg.DbDataTypeDecimal:
+		// TODO:
+		// return reflect.TypeFor[string]()
+	case pg.DbDataTypeBinary:
+		return reflect.TypeFor[[]byte]()
+	case pg.DbDataTypeJsonb:
+		return reflect.TypeFor[[]byte]()
+	case pg.DbDataTypeDate,
+		pg.DbDataTypeTime,
+		pg.DbDataTypeDatetime,
+		pg.DbDataTypeTimestamp:
+		return reflect.TypeFor[time.Time]()
+	case pg.DbDataTypeInterval:
+		// TODO
+	case pg.DbDataTypeRangeInt32:
+		return reflect.TypeFor[Int32Range]()
+	case pg.DbDataTypeRangeInt64:
+		return reflect.TypeFor[Int64Range]()
+	case pg.DbDataTypeRangeDecimal:
+		// TODO
+	case pg.DbDataTypeArrayInt32:
+		return reflect.TypeFor[[]int32]()
+	case pg.DbDataTypeArrayInt64:
+		return reflect.TypeFor[[]int64]()
+	case pg.DbDataTypeArrayDecimal:
+		// TODO
+	case pg.DbDataTypeArrayStr:
+		return reflect.TypeFor[[]string]()
+	case pg.DbDataTypeOther:
+		return reflect.TypeFor[any]().Elem()
 	}
 	panic("invalid db column type of " + string(typ))
+}
+
+func toOptionSlice[T any](v []T) []wittypes.Option[T] {
+	values := make([]wittypes.Option[T], len(v))
+	for i, x := range v {
+		values[i] = wittypes.Some(x)
+	}
+	return values
+}
+
+func fromOptionSlice[T any](v []wittypes.Option[T]) []T {
+	values := make([]T, len(v))
+	for i, x := range v {
+		if x.IsSome() {
+			values[i] = x.Some()
+		}
+	}
+	return values
 }

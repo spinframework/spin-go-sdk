@@ -11,7 +11,7 @@ route = "/..."
 component = "pg-outbound"
 
 [component.pg-outbound]
-environment = { DB_URL = "host=localhost user=postgres dbname=spin_dev" }
+environment = { DB_URL = "host=localhost user=postgres password=postgres dbname=spin_dev" }
 source = "main.wasm"
 allowed_outbound_hosts = ["postgres://localhost"]
 [component.pg-outbound.build]
