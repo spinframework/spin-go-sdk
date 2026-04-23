@@ -108,7 +108,7 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	colTypes := make([]uint8, len(cols))
 	for i, c := range cols {
 		colNames[i] = c.Name
-		colTypes[i] = uint8(c.DataType.Tag())
+		colTypes[i] = c.DataType.Tag()
 	}
 
 	rows := &rows{
@@ -425,53 +425,53 @@ func toRow(row []pg.DbValue) []any {
 
 func colTypeToReflectType(typ uint8) reflect.Type {
 	switch typ {
-	case uint8(pg.DbDataTypeBoolean):
+	case pg.DbDataTypeBoolean:
 		return reflect.TypeFor[bool]()
-	case uint8(pg.DbDataTypeInt8):
+	case pg.DbDataTypeInt8:
 		return reflect.TypeFor[int8]()
-	case uint8(pg.DbDataTypeInt16):
+	case pg.DbDataTypeInt16:
 		return reflect.TypeFor[int16]()
-	case uint8(pg.DbDataTypeInt32):
+	case pg.DbDataTypeInt32:
 		return reflect.TypeFor[int32]()
-	case uint8(pg.DbDataTypeInt64):
+	case pg.DbDataTypeInt64:
 		return reflect.TypeFor[int64]()
-	case uint8(pg.DbDataTypeFloating32):
+	case pg.DbDataTypeFloating32:
 		return reflect.TypeFor[float32]()
-	case uint8(pg.DbDataTypeFloating64):
+	case pg.DbDataTypeFloating64:
 		return reflect.TypeFor[float64]()
-	case uint8(pg.DbDataTypeStr):
+	case pg.DbDataTypeStr:
 		return reflect.TypeFor[string]()
-	case uint8(pg.DbDataTypeUuid):
+	case pg.DbDataTypeUuid:
 		return reflect.TypeFor[string]()
-	case uint8(pg.DbDataTypeDecimal):
+	case pg.DbDataTypeDecimal:
 		// TODO:
 		// return reflect.TypeFor[string]()
-	case uint8(pg.DbDataTypeBinary):
+	case pg.DbDataTypeBinary:
 		return reflect.TypeFor[[]byte]()
-	case uint8(pg.DbDataTypeJsonb):
+	case pg.DbDataTypeJsonb:
 		return reflect.TypeFor[[]byte]()
-	case uint8(pg.DbDataTypeDate),
-		uint8(pg.DbDataTypeTime),
-		uint8(pg.DbDataTypeDatetime),
-		uint8(pg.DbDataTypeTimestamp):
+	case pg.DbDataTypeDate,
+		pg.DbDataTypeTime,
+		pg.DbDataTypeDatetime,
+		pg.DbDataTypeTimestamp:
 		return reflect.TypeFor[time.Time]()
-	case uint8(pg.DbDataTypeInterval):
+	case pg.DbDataTypeInterval:
 		// TODO
-	case uint8(pg.DbDataTypeRangeInt32):
+	case pg.DbDataTypeRangeInt32:
 		return reflect.TypeFor[Int32Range]()
-	case uint8(pg.DbDataTypeRangeInt64):
+	case pg.DbDataTypeRangeInt64:
 		return reflect.TypeFor[Int64Range]()
-	case uint8(pg.DbDataTypeRangeDecimal):
+	case pg.DbDataTypeRangeDecimal:
 		// TODO
-	case uint8(pg.DbDataTypeArrayInt32):
+	case pg.DbDataTypeArrayInt32:
 		return reflect.TypeFor[[]int32]()
-	case uint8(pg.DbDataTypeArrayInt64):
+	case pg.DbDataTypeArrayInt64:
 		return reflect.TypeFor[[]int64]()
-	case uint8(pg.DbDataTypeArrayDecimal):
+	case pg.DbDataTypeArrayDecimal:
 		// TODO
-	case uint8(pg.DbDataTypeArrayStr):
+	case pg.DbDataTypeArrayStr:
 		return reflect.TypeFor[[]string]()
-	case uint8(pg.DbDataTypeOther):
+	case pg.DbDataTypeOther:
 		return reflect.TypeFor[any]().Elem()
 	}
 	panic("invalid db column type of " + string(typ))
