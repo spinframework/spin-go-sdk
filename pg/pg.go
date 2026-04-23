@@ -7,7 +7,6 @@ import (
 	"database/sql/driver"
 	"errors"
 	"io"
-	"iter"
 	"reflect"
 	"time"
 
@@ -114,30 +113,11 @@ func (s *stmt) Query(args []driver.Value) (driver.Rows, error) {
 	rows := &rows{
 		columns:    colNames,
 		columnType: colTypes,
+		stream:     tuple.F1,
+		future:     tuple.F2,
 	}
 
-	rowsStream := tuple.F1
-	rowsResult := tuple.F2
-	rows.pull, rows.stop = iter.Pull(func(yield func([]any) bool) {
-		defer rowsStream.Drop()
-		defer rowsResult.Drop()
-
-		buffer := [][]pg.DbValue{nil}
-		for rowsStream.Read(buffer) == 1 {
-			if !yield(toRow(buffer[0])) {
-				break
-			}
-		}
-
-		result := rowsResult.Read()
-		if result.IsOk() {
-			rows.result = io.EOF
-		} else {
-			rows.result = toError(result.Err())
-		}
-	})
-
-	rows.next, _ = rows.pull()
+	rows.next = rows.pull()
 	return rows, nil
 }
 
@@ -178,8 +158,8 @@ type rows struct {
 	columns    []string
 	columnType []uint8
 	next       []any
-	pull       func() ([]any, bool)
-	stop       func()
+	stream     *wittypes.StreamReader[[]pg.DbValue]
+	future     *wittypes.FutureReader[wittypes.Result[wittypes.Unit, pg.Error]]
 	result     error
 }
 
@@ -194,11 +174,26 @@ func (r *rows) Columns() []string {
 
 // Close closes the rows iterator.
 func (r *rows) Close() error {
-	r.stop()
-	r.stop = nil
-	r.pull = nil
+	r.stream.Drop()
+	r.future.Drop()
+	r.stream = nil
+	r.future = nil
 	r.next = nil
 	r.result = io.EOF
+	return nil
+}
+
+func (r *rows) pull() []any {
+	buffer := [][]pg.DbValue{nil}
+	if r.stream.Read(buffer) == 1 {
+		return toRow(buffer[0])
+	}
+	result := r.future.Read()
+	if result.IsOk() {
+		r.result = io.EOF
+	} else {
+		r.result = toError(result.Err())
+	}
 	return nil
 }
 
@@ -208,7 +203,7 @@ func (r *rows) Next(dest []driver.Value) error {
 		return r.result
 	}
 	next := r.next
-	r.next, _ = r.pull()
+	r.next = r.pull()
 	for i := 0; i != len(r.columns); i++ {
 		dest[i] = driver.Value(next[i])
 	}
@@ -227,7 +222,7 @@ func (r *rows) HasNextResultSet() bool {
 // NextResultSet should return io.EOF when there are no more result sets.
 func (r *rows) NextResultSet() error {
 	if r.HasNextResultSet() {
-		r.next, _ = r.pull()
+		r.next = r.pull()
 		return nil
 	}
 	return r.result
@@ -265,6 +260,9 @@ func toRdbmsParameterValue(x any) pg.ParameterValue {
 	case Int32Range:
 		witVal, _ := v.Value()
 		return pg.MakeParameterValueRangeInt32(witVal.(wittypes.Tuple2[wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]], wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]]]))
+	case Int64Range:
+		witVal, _ := v.Value()
+		return pg.MakeParameterValueRangeInt64(witVal.(wittypes.Tuple2[wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]], wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]]]))
 	case []int32:
 		return pg.MakeParameterValueArrayInt32(toOptionSlice(v))
 	case []int64:
