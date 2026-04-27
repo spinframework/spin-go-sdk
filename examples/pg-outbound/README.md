@@ -1,0 +1,30 @@
+# Requirements
+- [**go**](https://go.dev/dl/) - v1.25+
+- [**spin**](https://github.com/spinframework/spin) - Latest version
+- [**docker**](https://docs.docker.com/get-started/get-docker/) - Latest version
+
+# Usage
+In a terminal window, use the below command to run PostgreSQL:
+```sh
+docker compose up -d
+```
+
+Then, you'll build and run your Spin app:
+```sh
+spin up --build
+```
+
+In another terminal window, you can interact with the Spin app:
+```sh
+curl localhost:3000
+```
+
+You should see the output:
+```json
+[{"ID":1,"Name":"Splodge","Prey":null,"IsFinicky":false},{"ID":2,"Name":"Kiki","Prey":"Cicadas","IsFinicky":false},{"ID":3,"Name":"Slats","Prey":"Temptations","IsFinicky":true},{"ID":4,"Name":"Maya","Prey":"bananas","IsFinicky":true}]
+```
+
+To stop and clean up the PostgreSQL container, run the following:
+```sh
+docker compose down -v
+```
