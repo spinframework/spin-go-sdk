@@ -7,6 +7,7 @@ _Listed in alphabetical order by first name_
 | Name | GitHub Username |
 | --- | --- |
 | Adam Reese | adamreese |
+| Joel Dice | dicej |
 | Lann Martin | lann |
 | Radu Matei | radu-matei |
 | Rajat Jindal | rajatjindal |
