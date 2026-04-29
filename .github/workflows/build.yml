@@ -24,5 +24,8 @@ jobs:
           # TODO: Switch to Spin 4.0 when it's available
           version: "canary"
 
+      - name: Run unit tests
+        run: go test -v -count=1 ./pg
+
       - name: Run integration tests
         run: go test -v -count=1 .
