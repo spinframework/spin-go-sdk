@@ -34,10 +34,13 @@ func init() {
 			return
 		}
 
-		keys, err := store.GetKeys()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		var keys []string
+		for key, err := range store.GetKeys() {
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			keys = append(keys, key)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

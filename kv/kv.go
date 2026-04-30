@@ -3,8 +3,9 @@ package kv
 
 import (
 	"fmt"
+	"iter"
 
-	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_key_value"
+	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/spin_key_value_3_0_0_key_value"
 )
 
 // Store represents a connection to a key-value store.
@@ -76,14 +77,35 @@ func (s *Store) Exists(key string) (bool, error) {
 	return result.Ok(), nil
 }
 
-// GetKeys returns all the keys from the store.
-func (s *Store) GetKeys() ([]string, error) {
-	result := s.store.GetKeys()
-	if result.IsErr() {
-		return nil, errorVariantToError(result.Err())
-	}
+// GetKeys returns an iterator over the keys in the store. Keys are yielded as
+// they arrive from the host, allowing the consumer to process them
+// concurrently with the underlying stream read.
+//
+// The iterator yields each key with a nil error. If the host reports an error
+// after the stream completes, a final pair of ("", err) is yielded. Stopping
+// the iteration early releases the underlying stream.
+func (s *Store) GetKeys() iter.Seq2[string, error] {
+	return func(yield func(string, error) bool) {
+		stream, future := s.store.GetKeys()
+		defer stream.Drop()
 
-	return result.Ok(), nil
+		buf := make([]string, 64)
+		for {
+			n := stream.Read(buf)
+			for _, k := range buf[:n] {
+				if !yield(k, nil) {
+					return
+				}
+			}
+			if stream.WriterDropped() {
+				break
+			}
+		}
+
+		if result := future.Read(); result.IsErr() {
+			yield("", errorVariantToError(result.Err()))
+		}
+	}
 }
 
 func errorVariantToError(code keyvalue.Error) error {

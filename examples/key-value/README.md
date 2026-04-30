@@ -10,7 +10,7 @@ spin up --build
 
 In another terminal window, you can interact with the Spin app:
 ```sh
-curl localhost:3000/hello
+curl localhost:3000
 ```
 
 You should receive the following output:
