@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
@@ -21,7 +22,9 @@ type responseWriter struct {
 	// headers to send
 	headers http.Header
 	// status code to send
-	statusCode int
+	statusCode       int
+	trailersTx       *wit.FutureWriter[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
+	didWriteTrailers bool
 }
 
 func (self *responseWriter) Header() http.Header {
@@ -47,12 +50,59 @@ func (self *responseWriter) WriteHeader(statusCode int) {
 	self.statusCode = statusCode
 }
 
+func (self *responseWriter) Flush() {
+}
+
+func (self *responseWriter) writeTrailers() {
+	if self.didWriteTrailers {
+		return
+	}
+
+	if self.trailersTx == nil {
+		return
+	}
+
+	trailers := make([]string, 0)
+	for headerName, headerVal := range self.headers {
+		if headerName == "Trailer" {
+			trailers = headerVal
+			break
+		}
+	}
+
+	trailz := http.Header{}
+	anyTrailz := false
+	for headerName, headerVals := range self.headers {
+		if slices.Contains(trailers, headerName) {
+			for _, headerVal := range headerVals {
+				trailz.Add(headerName, headerVal)
+				anyTrailz = true
+			}
+		}
+	}
+
+	if anyTrailz {
+		wasiTrailz, err := toWasiHeaders(trailz)
+		if err != nil {
+			return
+		}
+		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailz)))
+	} else {
+		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
+	}
+}
+
 func (self *responseWriter) close() {
+	self.writeTrailers()
+
 	if self.stream != nil {
 		self.stream.Drop()
 	}
 	if self.streamResult != nil {
 		self.streamResult.Drop()
+	}
+	if self.trailersTx != nil {
+		self.trailersTx.Drop()
 	}
 }
 
@@ -73,10 +123,13 @@ func (self *responseWriter) send() error {
 	tx, rx := wasi.MakeStreamU8()
 	self.stream = tx
 
+	trailersTx, trailersRx := wasi.MakeFutureResultOptionFieldsErrorCode()
+	self.trailersTx = trailersTx
+
 	response, send := wasi.ResponseNew(
 		fields,
 		wit.Some(rx),
-		trailersFuture(), // TODO: support trailers
+		trailersRx,
 	)
 	self.streamResult = send
 
