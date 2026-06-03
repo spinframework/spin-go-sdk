@@ -24,7 +24,6 @@ type responseWriter struct {
 	// status code to send
 	statusCode       int
 	trailersTx       *wit.FutureWriter[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
-	didWriteTrailers bool
 }
 
 func (self *responseWriter) Header() http.Header {
@@ -54,10 +53,6 @@ func (self *responseWriter) Flush() {
 }
 
 func (self *responseWriter) writeTrailers() {
-	if self.didWriteTrailers {
-		return
-	}
-
 	if self.trailersTx == nil {
 		return
 	}
@@ -90,6 +85,8 @@ func (self *responseWriter) writeTrailers() {
 	} else {
 		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
 	}
+
+	self.trailersTx = nil
 }
 
 func (self *responseWriter) close() {
