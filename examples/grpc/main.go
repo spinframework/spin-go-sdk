@@ -42,6 +42,9 @@ func init() {
 // main function must be included for the compiler but is not executed.
 func main() {}
 
+// The rest of this file is taken from https://github.com/grpc/grpc-go/blob/master/examples/route_guide/server/server.go,
+// with some changes to comments.
+
 type routeGuideServer struct {
 	pb.UnimplementedRouteGuideServer
 	savedFeatures []*pb.Feature // read-only after initialized
@@ -144,7 +147,9 @@ func (s *routeGuideServer) RouteChat(stream pb.RouteGuide_RouteChatServer) error
 	}
 }
 
-// loadFeatures loads features from a JSON file.
+// loadFeatures loads features from the example data (or from
+// a JSON file, although we don't use that functionality in this
+// sample).
 func (s *routeGuideServer) loadFeatures(filePath string) {
 	var data []byte
 	if filePath != "" {
@@ -205,8 +210,7 @@ func serialize(point *pb.Point) string {
 	return fmt.Sprintf("%d %d", point.Latitude, point.Longitude)
 }
 
-// exampleData is a copy of testdata/route_guide_db.json. It's to avoid
-// specifying file path with `go run`.
+// exampleData is a copy of https://github.com/grpc/grpc-go/tree/master/examples/route_guide/testdata/route_guide_db.json.
 var exampleData = []byte(`[{
     "location": {
         "latitude": 407838351,

@@ -37,3 +37,7 @@ grpcurl -plaintext -d '{"location":{"latitude":413069058,"longitude":-744597778}
 ```
 
 > The RouteChat feature in this implementation doesn't yet persist messages, so you'll need to hit the endpoint several times within the idle instance timeout, or you'll only see your own messages. (See comment in source code.) The default timeout is 1 second, but you can pass `--idle-instance-timeout 600s` to enjoy a more persistent chat experience!
+
+## Acknowledgements
+
+The bulk of this sample is taken directly from https://github.com/grpc/grpc-go/blob/master/examples/route_guide/server/server.go, provided under the Apache license (https://www.apache.org/licenses/LICENSE-2.0). Changes were made to the original file, to use a Spin server rather than Go's built-in server, and to clarify some comments or APIs in the context of the Spin sample.

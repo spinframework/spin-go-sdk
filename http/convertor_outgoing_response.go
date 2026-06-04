@@ -52,45 +52,38 @@ func (self *responseWriter) WriteHeader(statusCode int) {
 func (self *responseWriter) Flush() {
 }
 
-func (self *responseWriter) writeTrailers() {
+func (self *responseWriter) writeTrailers() error {
 	if self.trailersTx == nil {
-		return
+		return nil
 	}
 
-	trailers := make([]string, 0)
-	for headerName, headerVal := range self.headers {
-		if headerName == "Trailer" {
-			trailers = headerVal
-			break
-		}
-	}
-
-	trailz := http.Header{}
-	anyTrailz := false
+	declared := self.headers.Values("Trailer")
+	collected := make(http.Header)
 	for headerName, headerVals := range self.headers {
-		if slices.Contains(trailers, headerName) {
-			for _, headerVal := range headerVals {
-				trailz.Add(headerName, headerVal)
-				anyTrailz = true
-			}
+		if slices.Contains(declared, headerName) {
+			collected[headerName] = headerVals
 		}
 	}
 
-	if anyTrailz {
-		wasiTrailz, err := toWasiHeaders(trailz)
+	if len(collected) > 0 {
+		wasiTrailers, err := toWasiHeaders(collected)
 		if err != nil {
-			return
+			return err
 		}
-		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailz)))
+		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailers)))
 	} else {
 		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
 	}
 
 	self.trailersTx = nil
+	return nil
 }
 
-func (self *responseWriter) close() {
-	self.writeTrailers()
+func (self *responseWriter) close() error {
+	err := self.writeTrailers()
+	if err != nil {
+		return err
+	}
 
 	if self.stream != nil {
 		self.stream.Drop()
@@ -101,6 +94,8 @@ func (self *responseWriter) close() {
 	if self.trailersTx != nil {
 		self.trailersTx.Drop()
 	}
+
+	return nil
 }
 
 func (self *responseWriter) send() error {
