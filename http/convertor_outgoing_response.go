@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
@@ -22,6 +23,7 @@ type responseWriter struct {
 	headers http.Header
 	// status code to send
 	statusCode int
+	trailersTx *wit.FutureWriter[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
 }
 
 func (self *responseWriter) Header() http.Header {
@@ -47,13 +49,48 @@ func (self *responseWriter) WriteHeader(statusCode int) {
 	self.statusCode = statusCode
 }
 
-func (self *responseWriter) close() {
+func (self *responseWriter) Flush() {
+}
+
+func (self *responseWriter) writeTrailers() {
+	if self.trailersTx == nil {
+		return
+	}
+
+	declared := self.headers.Values("Trailer")
+	collected := make(http.Header)
+	for headerName, headerVals := range self.headers {
+		if slices.Contains(declared, headerName) {
+			collected[headerName] = headerVals
+		}
+	}
+
+	if len(collected) > 0 {
+		wasiTrailers, err := toWasiHeaders(collected)
+		if err != nil {
+			errCode := wasi.MakeErrorCodeInternalError(wit.Some(fmt.Sprintf("Cannot send trailers: %v", err)))
+			self.trailersTx.Write(wit.Err[wit.Option[*wasi.Fields]](errCode))
+		}
+		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailers)))
+	} else {
+		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
+	}
+
+	self.trailersTx = nil
+}
+
+func (self *responseWriter) close() error {
 	if self.stream != nil {
 		self.stream.Drop()
 	}
 	if self.streamResult != nil {
 		self.streamResult.Drop()
 	}
+	if self.trailersTx != nil {
+		self.trailersTx.Drop()
+	}
+
+	return nil
 }
 
 func (self *responseWriter) send() error {
@@ -73,10 +110,13 @@ func (self *responseWriter) send() error {
 	tx, rx := wasi.MakeStreamU8()
 	self.stream = tx
 
+	trailersTx, trailersRx := wasi.MakeFutureResultOptionFieldsErrorCode()
+	self.trailersTx = trailersTx
+
 	response, send := wasi.ResponseNew(
 		fields,
 		wit.Some(rx),
-		trailersFuture(), // TODO: support trailers
+		trailersRx,
 	)
 	self.streamResult = send
 

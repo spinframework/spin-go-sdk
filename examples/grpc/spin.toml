@@ -1,0 +1,20 @@
+#:schema https://schemas.spinframework.dev/spin/manifest-v2/latest.json
+
+spin_manifest_version = 2
+
+[application]
+name = "grpc-example"
+version = "0.1.0"
+authors = ["itowlson <ivan.towlson@fermyon.com>"]
+description = ""
+
+[[trigger.http]]
+route = "/..."
+component = "grpc-example"
+
+[component.grpc-example]
+source = "main.wasm"
+allowed_outbound_hosts = []
+[component.grpc-example.build]
+command = "go tool componentize-go build"
+watch = ["**/*.go", "go.mod"]

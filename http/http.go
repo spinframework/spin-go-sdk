@@ -83,6 +83,8 @@ var wasiHandle = func(request *wasi.Request) wit.Result[*wasi.Response, wasi.Err
 					))),
 				)
 			}
+
+			httpRes.writeTrailers()
 		}
 	}()
 
