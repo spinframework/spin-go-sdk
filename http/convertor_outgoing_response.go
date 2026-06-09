@@ -22,8 +22,8 @@ type responseWriter struct {
 	// headers to send
 	headers http.Header
 	// status code to send
-	statusCode       int
-	trailersTx       *wit.FutureWriter[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
+	statusCode int
+	trailersTx *wit.FutureWriter[wit.Result[wit.Option[*wasi.Fields], wasi.ErrorCode]]
 }
 
 func (self *responseWriter) Header() http.Header {
@@ -52,9 +52,9 @@ func (self *responseWriter) WriteHeader(statusCode int) {
 func (self *responseWriter) Flush() {
 }
 
-func (self *responseWriter) writeTrailers() error {
+func (self *responseWriter) writeTrailers() {
 	if self.trailersTx == nil {
-		return nil
+		return
 	}
 
 	declared := self.headers.Values("Trailer")
@@ -68,7 +68,8 @@ func (self *responseWriter) writeTrailers() error {
 	if len(collected) > 0 {
 		wasiTrailers, err := toWasiHeaders(collected)
 		if err != nil {
-			return err
+			errCode := wasi.MakeErrorCodeInternalError(wit.Some(fmt.Sprintf("Cannot send trailers: %v", err)))
+			self.trailersTx.Write(wit.Err[wit.Option[*wasi.Fields]](errCode))
 		}
 		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailers)))
 	} else {
@@ -76,15 +77,9 @@ func (self *responseWriter) writeTrailers() error {
 	}
 
 	self.trailersTx = nil
-	return nil
 }
 
 func (self *responseWriter) close() error {
-	err := self.writeTrailers()
-	if err != nil {
-		return err
-	}
-
 	if self.stream != nil {
 		self.stream.Drop()
 	}
