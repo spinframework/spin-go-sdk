@@ -7,11 +7,9 @@ rm -r imports
 # these bindings, discarding the exports.
 componentize-go \
   --ignore-toml-files \
-  -w "spin:up/http-trigger@4.0.0" \
-  -w "spin:up/redis-trigger@4.0.0" \
-  -w "wasi:http/service@0.3.0-rc-2026-03-15" \
-  -w "fermyon:spin/http-trigger@3.0.0" \
-  -w "fermyon:spin/redis-trigger" \
+  -w "spin:up/http-trigger@4.1.0" \
+  -w "spin:up/redis-trigger@4.1.0" \
+  -w "wasi:http/service@0.3.0" \
   -d wit \
   bindings \
   --format \
@@ -25,11 +23,9 @@ rm -r imports/wit_exports
 # only the exports from these bindings, defering to the imports we generated
 # above.
 for world in \
-  "spin:up/http-trigger@4.0.0" \
-  "spin:up/redis-trigger@4.0.0" \
-  "wasi:http/service@0.3.0-rc-2026-03-15" \
-  "fermyon:spin/http-trigger@3.0.0" \
-  "fermyon:spin/redis-trigger"
+  "spin:up/http-trigger@4.1.0" \
+  "spin:up/redis-trigger@4.1.0" \
+  "wasi:http/service@0.3.0"
 do
   rm -rf tmp
   dir=exports/$(echo $world | sed 's+[:/@.-]+_+g')

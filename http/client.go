@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	client "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_client"
-	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_rc_2026_03_15_types"
+	client "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_client"
+	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_types"
 )
 
 // NewTransport returns an [http.RoundTripper] backed by the Spin SDK.
