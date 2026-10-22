@@ -51,7 +51,7 @@ func (s *Store) Get(key string) ([]byte, error) {
 
 	value := result.Ok()
 	if value.IsNone() {
-		return []byte(""), nil
+		return nil, nil
 	}
 
 	return value.Some(), nil
