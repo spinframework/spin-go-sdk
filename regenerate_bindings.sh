@@ -5,7 +5,7 @@ rm -r imports
 
 # Generate bindings for all supported worlds.  We'll only use the imports from
 # these bindings, discarding the exports.
-componentize-go \
+go tool componentize-go \
   --ignore-toml-files \
   -w "spin:up/http-trigger@4.1.0" \
   -w "spin:up/redis-trigger@4.1.0" \
@@ -25,12 +25,11 @@ rm -r imports/wit_exports
 for world in \
   "spin:up/http-trigger@4.1.0" \
   "spin:up/redis-trigger@4.1.0" \
-  "wasi:http/service@0.3.0"
-do
+  "wasi:http/service@0.3.0"; do
   rm -rf tmp
   dir=exports/$(echo $world | sed 's+[:/@.-]+_+g')
   rm -rf $dir/wit_exports
-  componentize-go \
+  go tool componentize-go \
     --ignore-toml-files \
     -w "$world" \
     -d wit \
@@ -43,4 +42,3 @@ do
   cp -r tmp/wit_exports $dir/
   rm -rf tmp
 done
-
