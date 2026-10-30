@@ -143,7 +143,7 @@ func (j *JSONB) Scan(src any) error {
 		*j = make(JSONB, len(src))
 		copy(*j, src)
 	case pg.DbValue:
-		if src.Tag() == pg.DbValueJsonb {
+		if src.Tag() == pg.DbValue_Jsonb {
 			data := src.Jsonb()
 			*j = make(JSONB, len(data))
 			copy(*j, data)
@@ -170,7 +170,7 @@ func (u *UUID) Scan(src any) error {
 	case string:
 		*u = UUID(src)
 	case pg.DbValue:
-		if src.Tag() == pg.DbValueUuid {
+		if src.Tag() == pg.DbValue_Uuid {
 			uuid := src.Uuid()
 			*u = UUID(uuid)
 		}
@@ -243,14 +243,14 @@ func (r *Int32Range) Scan(src any) error {
 		lb := v.F0.Some()
 		val := lb.F0
 		r.Lower = &val
-		r.LowerInclusive = lb.F1 == pg.RangeBoundKindInclusive
+		r.LowerInclusive = lb.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	if v.F1.IsSome() {
 		ub := v.F1.Some()
 		val := ub.F0
 		r.Upper = &val
-		r.UpperInclusive = ub.F1 == pg.RangeBoundKindInclusive
+		r.UpperInclusive = ub.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	return nil
@@ -260,9 +260,9 @@ func (r *Int32Range) Scan(src any) error {
 func (r Int32Range) Value() (driver.Value, error) {
 	var lower wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]]
 	if r.Lower != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.LowerInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		lower = wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: *r.Lower, F1: kind})
 	} else {
@@ -271,9 +271,9 @@ func (r Int32Range) Value() (driver.Value, error) {
 
 	var upper wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]]
 	if r.Upper != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.UpperInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		upper = wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: *r.Upper, F1: kind})
 	} else {
@@ -318,14 +318,14 @@ func (r *Int64Range) Scan(src any) error {
 		lb := v.F0.Some()
 		val := lb.F0
 		r.Lower = &val
-		r.LowerInclusive = lb.F1 == pg.RangeBoundKindInclusive
+		r.LowerInclusive = lb.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	if v.F1.IsSome() {
 		ub := v.F1.Some()
 		val := ub.F0
 		r.Upper = &val
-		r.UpperInclusive = ub.F1 == pg.RangeBoundKindInclusive
+		r.UpperInclusive = ub.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	return nil
@@ -335,9 +335,9 @@ func (r *Int64Range) Scan(src any) error {
 func (r Int64Range) Value() (driver.Value, error) {
 	var lower wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]]
 	if r.Lower != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.LowerInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		lower = wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: *r.Lower, F1: kind})
 	} else {
@@ -346,9 +346,9 @@ func (r Int64Range) Value() (driver.Value, error) {
 
 	var upper wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]]
 	if r.Upper != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.UpperInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		upper = wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: *r.Upper, F1: kind})
 	} else {
@@ -393,14 +393,14 @@ func (r *DecimalRange) Scan(src any) error {
 		lb := v.F0.Some()
 		val := Decimal(lb.F0)
 		r.Lower = &val
-		r.LowerInclusive = lb.F1 == pg.RangeBoundKindInclusive
+		r.LowerInclusive = lb.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	if v.F1.IsSome() {
 		ub := v.F1.Some()
 		val := Decimal(ub.F0)
 		r.Upper = &val
-		r.UpperInclusive = ub.F1 == pg.RangeBoundKindInclusive
+		r.UpperInclusive = ub.F1 == pg.RangeBoundKind_Inclusive
 	}
 
 	return nil
@@ -410,9 +410,9 @@ func (r *DecimalRange) Scan(src any) error {
 func (r DecimalRange) Value() (driver.Value, error) {
 	var lower wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]]
 	if r.Lower != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.LowerInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		lower = wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: string(*r.Lower), F1: kind})
 	} else {
@@ -421,9 +421,9 @@ func (r DecimalRange) Value() (driver.Value, error) {
 
 	var upper wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]]
 	if r.Upper != nil {
-		kind := pg.RangeBoundKindExclusive
+		kind := pg.RangeBoundKind_Exclusive
 		if r.UpperInclusive {
-			kind = pg.RangeBoundKindInclusive
+			kind = pg.RangeBoundKind_Inclusive
 		}
 		upper = wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: string(*r.Upper), F1: kind})
 	} else {

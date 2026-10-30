@@ -13,11 +13,11 @@ go tool componentize-go \
   -d wit \
   bindings \
   --format \
-  -o imports \
-  --pkg-name github.com/spinframework/spin-go-sdk/v3/imports \
+  -o . \
+  --pkg-name github.com/spinframework/spin-go-sdk/v3 \
   --include-versions
 
-rm -r imports/wit_exports
+rm -r exports/wit_exports
 
 # For each supported world, generate bindings specific to that world.  We'll use
 # only the exports from these bindings, defering to the imports we generated
@@ -28,7 +28,7 @@ for world in \
   "wasi:http/service@0.3.0"; do
   rm -rf tmp
   dir=exports/$(echo $world | sed 's+[:/@.-]+_+g')
-  rm -rf $dir/wit_exports
+  rm -rf $dir/exports
   go tool componentize-go \
     --ignore-toml-files \
     -w "$world" \
@@ -36,9 +36,10 @@ for world in \
     bindings \
     --format \
     -o tmp \
-    --export-pkg-name github.com/spinframework/spin-go-sdk/v3/$dir \
-    --pkg-name github.com/spinframework/spin-go-sdk/v3/imports \
+    --pkg-name github.com/spinframework/spin-go-sdk/v3 \
     --include-versions
-  cp -r tmp/wit_exports $dir/
+  sed -i -e "s^github.com/spinframework/spin-go-sdk/v3/exports^github.com/spinframework/spin-go-sdk/v3/$dir^" \
+    tmp/exports/wit_exports/wit_exports.go
+  cp -r tmp/exports/wit_exports $dir/
   rm -rf tmp
 done

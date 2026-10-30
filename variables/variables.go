@@ -21,13 +21,13 @@ func Get(key string) (string, error) {
 
 func errorVariantToError(err variables.Error) error {
 	switch err.Tag() {
-	case variables.ErrorInvalidName:
+	case variables.Error_InvalidName:
 		return errors.New(err.InvalidName())
-	case variables.ErrorProvider:
+	case variables.Error_Provider:
 		return errors.New(err.Provider())
-	case variables.ErrorUndefined:
+	case variables.Error_Undefined:
 		return errors.New(err.Undefined())
-	case variables.ErrorOther:
+	case variables.Error_Other:
 		return errors.New(err.Other())
 	default:
 		return errors.New("no error provided by host implementation")

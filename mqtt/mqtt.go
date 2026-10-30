@@ -37,16 +37,16 @@ type QoS = mqtt.Qos
 
 const (
 	// QosAtMostOnce delivers the message at most once (fire and forget).
-	QosAtMostOnce = mqtt.QosAtMostOnce
+	QosAtMostOnce = mqtt.Qos_AtMostOnce
 	// QosAtLeastOnce delivers the message at least once (acknowledged delivery).
-	QosAtLeastOnce = mqtt.QosAtLeastOnce
+	QosAtLeastOnce = mqtt.Qos_AtLeastOnce
 	// QosExactlyOnce delivers the message exactly once (assured delivery).
-	QosExactlyOnce = mqtt.QosExactlyOnce
+	QosExactlyOnce = mqtt.Qos_ExactlyOnce
 )
 
 func toError(err mqtt.Error) error {
 	switch err.Tag() {
-	case mqtt.ErrorConnectionFailed:
+	case mqtt.Error_ConnectionFailed:
 		return fmt.Errorf("connection-failed: %s", err.ConnectionFailed())
 	default:
 		return fmt.Errorf("%s", err.Other())
