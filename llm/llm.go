@@ -129,11 +129,11 @@ func GenerateEmbeddings(model EmbeddingModel, text []string) (*EmbeddingsResult,
 
 func errorVariantToError(err llm.Error) error {
 	switch err.Tag() {
-	case llm.ErrorModelNotSupported:
+	case llm.Error_ModelNotSupported:
 		return fmt.Errorf("model not supported")
-	case llm.ErrorRuntimeError:
+	case llm.Error_RuntimeError:
 		return fmt.Errorf("runtime error %s", err.RuntimeError())
-	case llm.ErrorInvalidInput:
+	case llm.Error_InvalidInput:
 		return fmt.Errorf("invalid input %s", err.InvalidInput())
 	default:
 		return fmt.Errorf("no error provided by host implementation")

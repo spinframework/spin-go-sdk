@@ -103,15 +103,15 @@ func toWasiHeaders(headers http.Header) (*wasi.Fields, error) {
 		if result := fields.Set(key, fieldVals); result.IsErr() {
 			fields.Drop()
 			switch result.Err().Tag() {
-			case wasi.HeaderErrorInvalidSyntax:
+			case wasi.HeaderError_InvalidSyntax:
 				return nil, fmt.Errorf(
 					"failed to set header %s to [%s]: invalid syntax",
 					key,
 					strings.Join(vals, ","),
 				)
-			case wasi.HeaderErrorForbidden:
+			case wasi.HeaderError_Forbidden:
 				return nil, fmt.Errorf("failed to set forbidden header key %s", key)
-			case wasi.HeaderErrorImmutable:
+			case wasi.HeaderError_Immutable:
 				return nil, fmt.Errorf("failed to set header on immutable header fields")
 			default:
 				return nil, fmt.Errorf("error setting header %s", key)
@@ -136,9 +136,9 @@ func unitFuture() *wit.FutureReader[wit.Result[wit.Unit, wasi.ErrorCode]] {
 
 func errorString(code wasi.ErrorCode) string {
 	switch code.Tag() {
-	case wasi.ErrorCodeDnsTimeout:
+	case wasi.ErrorCode_DnsTimeout:
 		return "DNS timeout"
-	case wasi.ErrorCodeDnsError:
+	case wasi.ErrorCode_DnsError:
 		p := code.DnsError()
 		var parts []string
 		if p.Rcode.IsSome() {
@@ -151,31 +151,31 @@ func errorString(code wasi.ErrorCode) string {
 			return "DNS error"
 		}
 		return "DNS error (" + strings.Join(parts, ", ") + ")"
-	case wasi.ErrorCodeDestinationNotFound:
+	case wasi.ErrorCode_DestinationNotFound:
 		return "destination not found"
-	case wasi.ErrorCodeDestinationUnavailable:
+	case wasi.ErrorCode_DestinationUnavailable:
 		return "destination unavailable"
-	case wasi.ErrorCodeDestinationIpProhibited:
+	case wasi.ErrorCode_DestinationIpProhibited:
 		return "destination IP prohibited"
-	case wasi.ErrorCodeDestinationIpUnroutable:
+	case wasi.ErrorCode_DestinationIpUnroutable:
 		return "destination IP unroutable"
-	case wasi.ErrorCodeConnectionRefused:
+	case wasi.ErrorCode_ConnectionRefused:
 		return "connection refused"
-	case wasi.ErrorCodeConnectionTerminated:
+	case wasi.ErrorCode_ConnectionTerminated:
 		return "connection terminated"
-	case wasi.ErrorCodeConnectionTimeout:
+	case wasi.ErrorCode_ConnectionTimeout:
 		return "connection timeout"
-	case wasi.ErrorCodeConnectionReadTimeout:
+	case wasi.ErrorCode_ConnectionReadTimeout:
 		return "connection read timeout"
-	case wasi.ErrorCodeConnectionWriteTimeout:
+	case wasi.ErrorCode_ConnectionWriteTimeout:
 		return "connection write timeout"
-	case wasi.ErrorCodeConnectionLimitReached:
+	case wasi.ErrorCode_ConnectionLimitReached:
 		return "connection limit reached"
-	case wasi.ErrorCodeTlsProtocolError:
+	case wasi.ErrorCode_TlsProtocolError:
 		return "TLS protocol error"
-	case wasi.ErrorCodeTlsCertificateError:
+	case wasi.ErrorCode_TlsCertificateError:
 		return "TLS certificate error"
-	case wasi.ErrorCodeTlsAlertReceived:
+	case wasi.ErrorCode_TlsAlertReceived:
 		p := code.TlsAlertReceived()
 		var parts []string
 		if p.AlertId.IsSome() {
@@ -188,89 +188,89 @@ func errorString(code wasi.ErrorCode) string {
 			return "TLS alert received"
 		}
 		return "TLS alert received (" + strings.Join(parts, ", ") + ")"
-	case wasi.ErrorCodeHttpRequestDenied:
+	case wasi.ErrorCode_HttpRequestDenied:
 		return "HTTP request denied"
-	case wasi.ErrorCodeHttpRequestLengthRequired:
+	case wasi.ErrorCode_HttpRequestLengthRequired:
 		return "HTTP request length required"
-	case wasi.ErrorCodeHttpRequestBodySize:
+	case wasi.ErrorCode_HttpRequestBodySize:
 		v := code.HttpRequestBodySize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP request body size: %d", v.Some())
 		}
 		return "HTTP request body size"
-	case wasi.ErrorCodeHttpRequestMethodInvalid:
+	case wasi.ErrorCode_HttpRequestMethodInvalid:
 		return "HTTP request method invalid"
-	case wasi.ErrorCodeHttpRequestUriInvalid:
+	case wasi.ErrorCode_HttpRequestUriInvalid:
 		return "HTTP request URI invalid"
-	case wasi.ErrorCodeHttpRequestUriTooLong:
+	case wasi.ErrorCode_HttpRequestUriTooLong:
 		return "HTTP request URI too long"
-	case wasi.ErrorCodeHttpRequestHeaderSectionSize:
+	case wasi.ErrorCode_HttpRequestHeaderSectionSize:
 		v := code.HttpRequestHeaderSectionSize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP request header section size: %d", v.Some())
 		}
 		return "HTTP request header section size"
-	case wasi.ErrorCodeHttpRequestHeaderSize:
+	case wasi.ErrorCode_HttpRequestHeaderSize:
 		v := code.HttpRequestHeaderSize()
 		if v.IsSome() {
 			return "HTTP request header size " + fieldSizeString(v.Some())
 		}
 		return "HTTP request header size"
-	case wasi.ErrorCodeHttpRequestTrailerSectionSize:
+	case wasi.ErrorCode_HttpRequestTrailerSectionSize:
 		v := code.HttpRequestTrailerSectionSize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP request trailer section size: %d", v.Some())
 		}
 		return "HTTP request trailer section size"
-	case wasi.ErrorCodeHttpRequestTrailerSize:
+	case wasi.ErrorCode_HttpRequestTrailerSize:
 		return "HTTP request trailer size " + fieldSizeString(code.HttpRequestTrailerSize())
-	case wasi.ErrorCodeHttpResponseIncomplete:
+	case wasi.ErrorCode_HttpResponseIncomplete:
 		return "HTTP response incomplete"
-	case wasi.ErrorCodeHttpResponseHeaderSectionSize:
+	case wasi.ErrorCode_HttpResponseHeaderSectionSize:
 		v := code.HttpResponseHeaderSectionSize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP response header section size: %d", v.Some())
 		}
 		return "HTTP response header section size"
-	case wasi.ErrorCodeHttpResponseHeaderSize:
+	case wasi.ErrorCode_HttpResponseHeaderSize:
 		return "HTTP response header size " + fieldSizeString(code.HttpResponseHeaderSize())
-	case wasi.ErrorCodeHttpResponseBodySize:
+	case wasi.ErrorCode_HttpResponseBodySize:
 		v := code.HttpResponseBodySize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP response body size: %d", v.Some())
 		}
 		return "HTTP response body size"
-	case wasi.ErrorCodeHttpResponseTrailerSectionSize:
+	case wasi.ErrorCode_HttpResponseTrailerSectionSize:
 		v := code.HttpResponseTrailerSectionSize()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP response trailer section size: %d", v.Some())
 		}
 		return "HTTP response trailer section size"
-	case wasi.ErrorCodeHttpResponseTrailerSize:
+	case wasi.ErrorCode_HttpResponseTrailerSize:
 		return "HTTP response trailer size " + fieldSizeString(code.HttpResponseTrailerSize())
-	case wasi.ErrorCodeHttpResponseTransferCoding:
+	case wasi.ErrorCode_HttpResponseTransferCoding:
 		v := code.HttpResponseTransferCoding()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP response transfer coding: %s", v.Some())
 		}
 		return "HTTP response transfer coding"
-	case wasi.ErrorCodeHttpResponseContentCoding:
+	case wasi.ErrorCode_HttpResponseContentCoding:
 		v := code.HttpResponseContentCoding()
 		if v.IsSome() {
 			return fmt.Sprintf("HTTP response content coding: %s", v.Some())
 		}
 		return "HTTP response content coding"
-	case wasi.ErrorCodeHttpResponseTimeout:
+	case wasi.ErrorCode_HttpResponseTimeout:
 		return "HTTP response timeout"
-	case wasi.ErrorCodeHttpUpgradeFailed:
+	case wasi.ErrorCode_HttpUpgradeFailed:
 		return "HTTP upgrade failed"
-	case wasi.ErrorCodeHttpProtocolError:
+	case wasi.ErrorCode_HttpProtocolError:
 		return "HTTP protocol error"
-	case wasi.ErrorCodeLoopDetected:
+	case wasi.ErrorCode_LoopDetected:
 		return "loop detected"
-	case wasi.ErrorCodeConfigurationError:
+	case wasi.ErrorCode_ConfigurationError:
 		return "configuration error"
-	case wasi.ErrorCodeInternalError:
+	case wasi.ErrorCode_InternalError:
 		v := code.InternalError()
 		if v.IsSome() {
 			return "internal error: " + v.Some()

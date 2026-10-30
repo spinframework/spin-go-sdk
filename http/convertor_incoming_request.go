@@ -44,25 +44,25 @@ func newHttpRequest(ir *wasi.Request) (*http.Request, error) {
 
 func methodToString(m wasi.Method) (string, error) {
 	switch m.Tag() {
-	case wasi.MethodConnect:
+	case wasi.Method_Connect:
 		return "CONNECT", nil
-	case wasi.MethodDelete:
+	case wasi.Method_Delete:
 		return "DELETE", nil
-	case wasi.MethodGet:
+	case wasi.Method_Get:
 		return "GET", nil
-	case wasi.MethodHead:
+	case wasi.Method_Head:
 		return "HEAD", nil
-	case wasi.MethodOptions:
+	case wasi.Method_Options:
 		return "OPTIONS", nil
-	case wasi.MethodPatch:
+	case wasi.Method_Patch:
 		return "PATCH", nil
-	case wasi.MethodPost:
+	case wasi.Method_Post:
 		return "POST", nil
-	case wasi.MethodPut:
+	case wasi.Method_Put:
 		return "PUT", nil
-	case wasi.MethodTrace:
+	case wasi.Method_Trace:
 		return "TRACE", nil
-	case wasi.MethodOther:
+	case wasi.Method_Other:
 		return m.Other(), fmt.Errorf("unknown http method 'other'")
 	default:
 		return "", fmt.Errorf("failed to convert http method")

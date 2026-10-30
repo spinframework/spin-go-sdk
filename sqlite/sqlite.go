@@ -273,15 +273,15 @@ func toSqliteValue(x any) sqlite.Value {
 
 func toError(err sqlite.Error) error {
 	switch err.Tag() {
-	case sqlite.ErrorNoSuchDatabase:
+	case sqlite.Error_NoSuchDatabase:
 		return errors.New("no such database")
-	case sqlite.ErrorAccessDenied:
+	case sqlite.Error_AccessDenied:
 		return errors.New("access denied")
-	case sqlite.ErrorInvalidConnection:
+	case sqlite.Error_InvalidConnection:
 		return errors.New("invalid connection")
-	case sqlite.ErrorDatabaseFull:
+	case sqlite.Error_DatabaseFull:
 		return errors.New("database full")
-	case sqlite.ErrorIo:
+	case sqlite.Error_Io:
 		return errors.New(err.Io())
 	default:
 		panic("unreachable code")
@@ -292,15 +292,15 @@ func toRow(row []sqlite.Value) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
 		switch v.Tag() {
-		case sqlite.ValueInteger:
+		case sqlite.Value_Integer:
 			result[i] = v.Integer()
-		case sqlite.ValueReal:
+		case sqlite.Value_Real:
 			result[i] = v.Real()
-		case sqlite.ValueText:
+		case sqlite.Value_Text:
 			result[i] = v.Text()
-		case sqlite.ValueBlob:
+		case sqlite.Value_Blob:
 			result[i] = v.Blob()
-		case sqlite.ValueNull:
+		case sqlite.Value_Null:
 			result[i] = nil
 		default:
 			panic("unreachable code")
