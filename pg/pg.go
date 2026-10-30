@@ -499,7 +499,7 @@ func colTypeToReflectType(typ uint8) reflect.Type {
 	case pg.DbDataTypeArrayStr:
 		return reflect.TypeFor[[]string]()
 	case pg.DbDataTypeOther:
-		return reflect.TypeFor[any]().Elem()
+		return reflect.TypeFor[any]()
 	}
 	panic("invalid db column type of " + string(typ))
 }
