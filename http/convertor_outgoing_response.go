@@ -70,8 +70,9 @@ func (self *responseWriter) writeTrailers() {
 		if err != nil {
 			errCode := wasi.MakeErrorCodeInternalError(wit.Some(fmt.Sprintf("Cannot send trailers: %v", err)))
 			self.trailersTx.Write(wit.Err[wit.Option[*wasi.Fields]](errCode))
+		} else {
+			self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailers)))
 		}
-		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.Some(wasiTrailers)))
 	} else {
 		self.trailersTx.Write(wit.Ok[wit.Option[*wasi.Fields], wasi.ErrorCode](wit.None[*wasi.Fields]()))
 	}
