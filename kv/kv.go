@@ -110,13 +110,13 @@ func (s *Store) GetKeys() iter.Seq2[string, error] {
 
 func errorVariantToError(code keyvalue.Error) error {
 	switch code.Tag() {
-	case keyvalue.ErrorAccessDenied:
+	case keyvalue.Error_AccessDenied:
 		return fmt.Errorf("access denied")
-	case keyvalue.ErrorNoSuchStore:
+	case keyvalue.Error_NoSuchStore:
 		return fmt.Errorf("no such store")
-	case keyvalue.ErrorStoreTableFull:
+	case keyvalue.Error_StoreTableFull:
 		return fmt.Errorf("store table full")
-	case keyvalue.ErrorOther:
+	case keyvalue.Error_Other:
 		return fmt.Errorf("%v", code.Other())
 	default:
 		return fmt.Errorf("no error provided by host implementation")

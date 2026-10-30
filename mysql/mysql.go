@@ -254,13 +254,13 @@ func toWasiParameterValue(x any) mysql.ParameterValue {
 
 func toError(err mysql.Error) error {
 	switch err.Tag() {
-	case mysql.ErrorBadParameter:
+	case mysql.Error_BadParameter:
 		return errors.New(err.BadParameter())
-	case mysql.ErrorConnectionFailed:
+	case mysql.Error_ConnectionFailed:
 		return errors.New(err.ConnectionFailed())
-	case mysql.ErrorQueryFailed:
+	case mysql.Error_QueryFailed:
 		return errors.New(err.QueryFailed())
-	case mysql.ErrorValueConversionFailed:
+	case mysql.Error_ValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
 	default:
 		// TODO: not sure if using "Other" as the default is appropriate
@@ -272,33 +272,33 @@ func toRow(row []mysql.DbValue) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
 		switch v.Tag() {
-		case mysql.DbValueBoolean:
+		case mysql.DbValue_Boolean:
 			result[i] = v.Boolean()
-		case mysql.DbValueInt8:
+		case mysql.DbValue_Int8:
 			result[i] = v.Int8()
-		case mysql.DbValueInt16:
+		case mysql.DbValue_Int16:
 			result[i] = v.Int16()
-		case mysql.DbValueInt32:
+		case mysql.DbValue_Int32:
 			result[i] = v.Int32()
-		case mysql.DbValueInt64:
+		case mysql.DbValue_Int64:
 			result[i] = v.Int64()
-		case mysql.DbValueUint8:
+		case mysql.DbValue_Uint8:
 			result[i] = v.Uint8()
-		case mysql.DbValueUint16:
+		case mysql.DbValue_Uint16:
 			result[i] = v.Uint16()
-		case mysql.DbValueUint32:
+		case mysql.DbValue_Uint32:
 			result[i] = v.Uint32()
-		case mysql.DbValueUint64:
+		case mysql.DbValue_Uint64:
 			result[i] = v.Uint64()
-		case mysql.DbValueFloating32:
+		case mysql.DbValue_Floating32:
 			result[i] = v.Floating32()
-		case mysql.DbValueFloating64:
+		case mysql.DbValue_Floating64:
 			result[i] = v.Floating64()
-		case mysql.DbValueStr:
+		case mysql.DbValue_Str:
 			result[i] = v.Str()
-		case mysql.DbValueBinary:
+		case mysql.DbValue_Binary:
 			result[i] = v.Binary()
-		case mysql.DbValueDbNull:
+		case mysql.DbValue_DbNull:
 			result[i] = nil
 		default:
 			panic("unknown value type")
@@ -325,29 +325,29 @@ func (r result) RowsAffected() (int64, error) {
 
 func colTypeToReflectType(typ uint8) reflect.Type {
 	switch typ {
-	case uint8(mysql.DbDataTypeBoolean):
+	case uint8(mysql.DbDataType_Boolean):
 		return reflect.TypeOf(false)
-	case uint8(mysql.DbDataTypeInt8):
+	case uint8(mysql.DbDataType_Int8):
 		return reflect.TypeOf(int8(0))
-	case uint8(mysql.DbDataTypeInt16):
+	case uint8(mysql.DbDataType_Int16):
 		return reflect.TypeOf(int16(0))
-	case uint8(mysql.DbDataTypeInt32):
+	case uint8(mysql.DbDataType_Int32):
 		return reflect.TypeOf(int32(0))
-	case uint8(mysql.DbDataTypeInt64):
+	case uint8(mysql.DbDataType_Int64):
 		return reflect.TypeOf(int64(0))
-	case uint8(mysql.DbDataTypeUint8):
+	case uint8(mysql.DbDataType_Uint8):
 		return reflect.TypeOf(uint8(0))
-	case uint8(mysql.DbDataTypeUint16):
+	case uint8(mysql.DbDataType_Uint16):
 		return reflect.TypeOf(uint16(0))
-	case uint8(mysql.DbDataTypeUint32):
+	case uint8(mysql.DbDataType_Uint32):
 		return reflect.TypeOf(uint32(0))
-	case uint8(mysql.DbDataTypeUint64):
+	case uint8(mysql.DbDataType_Uint64):
 		return reflect.TypeOf(uint64(0))
-	case uint8(mysql.DbDataTypeStr):
+	case uint8(mysql.DbDataType_Str):
 		return reflect.TypeOf("")
-	case uint8(mysql.DbDataTypeBinary):
+	case uint8(mysql.DbDataType_Binary):
 		return reflect.TypeOf(new([]byte))
-	case uint8(mysql.DbDataTypeOther):
+	case uint8(mysql.DbDataType_Other):
 		return reflect.TypeOf(new(any)).Elem()
 	}
 	panic("invalid db column type of " + string(typ))

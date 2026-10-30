@@ -346,16 +346,16 @@ func (e *QueryDBError) Error() string {
 
 func toError(err pg.Error) error {
 	switch err.Tag() {
-	case pg.ErrorBadParameter:
+	case pg.Error_BadParameter:
 		return errors.New(err.BadParameter())
-	case pg.ErrorConnectionFailed:
+	case pg.Error_ConnectionFailed:
 		return errors.New(err.ConnectionFailed())
-	case pg.ErrorQueryFailed:
+	case pg.Error_QueryFailed:
 		qf := err.QueryFailed()
 		switch qf.Tag() {
-		case pg.QueryErrorText:
+		case pg.QueryError_Text:
 			return errors.New(qf.Text())
-		case pg.QueryErrorDbError:
+		case pg.QueryError_DbError:
 			dbErr := qf.DbError()
 			pgErr := &QueryDBError{
 				Severity: dbErr.Severity,
@@ -373,9 +373,9 @@ func toError(err pg.Error) error {
 			}
 			return pgErr
 		}
-	case pg.ErrorValueConversionFailed:
+	case pg.Error_ValueConversionFailed:
 		return errors.New(err.ValueConversionFailed())
-	case pg.ErrorOther:
+	case pg.Error_Other:
 		return errors.New(err.Other())
 	}
 	panic("unknown error from runtime")
@@ -385,61 +385,61 @@ func toRow(row []pg.DbValue) []any {
 	result := make([]any, len(row))
 	for i, v := range row {
 		switch v.Tag() {
-		case pg.DbValueBoolean:
+		case pg.DbValue_Boolean:
 			result[i] = v.Boolean()
-		case pg.DbValueInt8:
+		case pg.DbValue_Int8:
 			result[i] = v.Int8()
-		case pg.DbValueInt16:
+		case pg.DbValue_Int16:
 			result[i] = v.Int16()
-		case pg.DbValueInt32:
+		case pg.DbValue_Int32:
 			result[i] = v.Int32()
-		case pg.DbValueInt64:
+		case pg.DbValue_Int64:
 			result[i] = v.Int64()
-		case pg.DbValueFloating32:
+		case pg.DbValue_Floating32:
 			result[i] = v.Floating32()
-		case pg.DbValueFloating64:
+		case pg.DbValue_Floating64:
 			result[i] = v.Floating64()
-		case pg.DbValueStr:
+		case pg.DbValue_Str:
 			result[i] = v.Str()
-		case pg.DbValueBinary:
+		case pg.DbValue_Binary:
 			result[i] = v.Binary()
-		case pg.DbValueDate:
+		case pg.DbValue_Date:
 			d := v.Date()
 			result[i] = time.Date(int(d.F0), time.Month(d.F1), int(d.F2), 0, 0, 0, 0, time.UTC)
-		case pg.DbValueTime:
+		case pg.DbValue_Time:
 			t := v.Time()
 			result[i] = time.Date(0, 1, 1, int(t.F0), int(t.F1), int(t.F2), int(t.F3), time.UTC)
-		case pg.DbValueDatetime:
+		case pg.DbValue_Datetime:
 			dt := v.Datetime()
 			result[i] = time.Date(int(dt.F0), time.Month(dt.F1), int(dt.F2), int(dt.F3), int(dt.F4), int(dt.F5), int(dt.F6), time.UTC)
-		case pg.DbValueTimestamp:
+		case pg.DbValue_Timestamp:
 			result[i] = time.Unix(v.Timestamp(), 0).UTC()
-		case pg.DbValueUuid:
+		case pg.DbValue_Uuid:
 			result[i] = v.Uuid()
-		case pg.DbValueJsonb:
+		case pg.DbValue_Jsonb:
 			result[i] = []byte(v.Jsonb())
-		case pg.DbValueDecimal:
+		case pg.DbValue_Decimal:
 			result[i] = v.Decimal()
-		case pg.DbValueRangeInt32:
+		case pg.DbValue_RangeInt32:
 			result[i] = v.RangeInt32()
-		case pg.DbValueRangeInt64:
+		case pg.DbValue_RangeInt64:
 			result[i] = v.RangeInt64()
-		case pg.DbValueRangeDecimal:
+		case pg.DbValue_RangeDecimal:
 			result[i] = v.RangeDecimal()
-		case pg.DbValueArrayInt32:
+		case pg.DbValue_ArrayInt32:
 			result[i] = fromOptionSlice(v.ArrayInt32())
-		case pg.DbValueArrayInt64:
+		case pg.DbValue_ArrayInt64:
 			result[i] = fromOptionSlice(v.ArrayInt64())
-		case pg.DbValueArrayDecimal:
+		case pg.DbValue_ArrayDecimal:
 			result[i] = fromOptionSlice(v.ArrayDecimal())
-		case pg.DbValueArrayStr:
+		case pg.DbValue_ArrayStr:
 			result[i] = fromOptionSlice(v.ArrayStr())
-		case pg.DbValueInterval:
+		case pg.DbValue_Interval:
 			iv := v.Interval()
 			result[i] = Interval{Months: iv.Months, Days: iv.Days, Micros: iv.Micros}
-		case pg.DbValueUnsupported:
+		case pg.DbValue_Unsupported:
 			result[i] = v.Unsupported()
-		case pg.DbValueDbNull:
+		case pg.DbValue_DbNull:
 			result[i] = nil
 		default:
 			panic("unknown value type")
@@ -451,54 +451,54 @@ func toRow(row []pg.DbValue) []any {
 
 func colTypeToReflectType(typ uint8) reflect.Type {
 	switch typ {
-	case pg.DbDataTypeBoolean:
+	case pg.DbDataType_Boolean:
 		return reflect.TypeFor[bool]()
-	case pg.DbDataTypeInt8:
+	case pg.DbDataType_Int8:
 		return reflect.TypeFor[int8]()
-	case pg.DbDataTypeInt16:
+	case pg.DbDataType_Int16:
 		return reflect.TypeFor[int16]()
-	case pg.DbDataTypeInt32:
+	case pg.DbDataType_Int32:
 		return reflect.TypeFor[int32]()
-	case pg.DbDataTypeInt64:
+	case pg.DbDataType_Int64:
 		return reflect.TypeFor[int64]()
-	case pg.DbDataTypeFloating32:
+	case pg.DbDataType_Floating32:
 		return reflect.TypeFor[float32]()
-	case pg.DbDataTypeFloating64:
+	case pg.DbDataType_Floating64:
 		return reflect.TypeFor[float64]()
-	case pg.DbDataTypeStr:
+	case pg.DbDataType_Str:
 		return reflect.TypeFor[string]()
-	case pg.DbDataTypeUuid:
+	case pg.DbDataType_Uuid:
 		return reflect.TypeFor[string]()
-	case pg.DbDataTypeDecimal:
+	case pg.DbDataType_Decimal:
 		return reflect.TypeFor[string]()
-	case pg.DbDataTypeBinary:
+	case pg.DbDataType_Binary:
 		return reflect.TypeFor[[]byte]()
-	case pg.DbDataTypeJsonb:
+	case pg.DbDataType_Jsonb:
 		return reflect.TypeFor[[]byte]()
-	case pg.DbDataTypeDate:
+	case pg.DbDataType_Date:
 		return reflect.TypeFor[Date]()
-	case pg.DbDataTypeTime:
+	case pg.DbDataType_Time:
 		return reflect.TypeFor[Time]()
-	case pg.DbDataTypeDatetime,
-		pg.DbDataTypeTimestamp:
+	case pg.DbDataType_Datetime,
+		pg.DbDataType_Timestamp:
 		return reflect.TypeFor[time.Time]()
-	case pg.DbDataTypeInterval:
+	case pg.DbDataType_Interval:
 		return reflect.TypeFor[Interval]()
-	case pg.DbDataTypeRangeInt32:
+	case pg.DbDataType_RangeInt32:
 		return reflect.TypeFor[Int32Range]()
-	case pg.DbDataTypeRangeInt64:
+	case pg.DbDataType_RangeInt64:
 		return reflect.TypeFor[Int64Range]()
-	case pg.DbDataTypeRangeDecimal:
+	case pg.DbDataType_RangeDecimal:
 		return reflect.TypeFor[DecimalRange]()
-	case pg.DbDataTypeArrayInt32:
+	case pg.DbDataType_ArrayInt32:
 		return reflect.TypeFor[[]int32]()
-	case pg.DbDataTypeArrayInt64:
+	case pg.DbDataType_ArrayInt64:
 		return reflect.TypeFor[[]int64]()
-	case pg.DbDataTypeArrayDecimal:
+	case pg.DbDataType_ArrayDecimal:
 		return reflect.TypeFor[[]string]()
-	case pg.DbDataTypeArrayStr:
+	case pg.DbDataType_ArrayStr:
 		return reflect.TypeFor[[]string]()
-	case pg.DbDataTypeOther:
+	case pg.DbDataType_Other:
 		return reflect.TypeFor[any]().Elem()
 	}
 	panic("invalid db column type of " + string(typ))
