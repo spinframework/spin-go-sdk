@@ -1,10 +1,10 @@
-module github.com/spinframework/spin-go-sdk/v3/examples/http-router
+module github.com/spinframework/spin-go-sdk/v4/examples/http-router
 
 go 1.27.1
 
 require (
 	github.com/julienschmidt/httprouter v1.3.0
-	github.com/spinframework/spin-go-sdk/v3 v3.0.0
+	github.com/spinframework/spin-go-sdk/v4 v4.0.0
 )
 
 require (
@@ -15,6 +15,6 @@ require (
 	golang.org/x/sys v0.37.0 // indirect
 )
 
-replace github.com/spinframework/spin-go-sdk/v3 => ../../
+replace github.com/spinframework/spin-go-sdk/v4 => ../../
 
 tool github.com/bytecodealliance/componentize-go

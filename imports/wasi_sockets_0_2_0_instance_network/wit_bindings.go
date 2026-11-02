@@ -74,7 +74,7 @@
 package wasi_sockets_0_2_0_instance_network
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_sockets_0_2_0_network"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_sockets_0_2_0_network"
 )
 
 type Network = wasi_sockets_0_2_0_network.Network

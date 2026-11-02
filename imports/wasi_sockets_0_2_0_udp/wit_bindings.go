@@ -74,8 +74,8 @@
 package wasi_sockets_0_2_0_udp
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_0_poll"
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_sockets_0_2_0_network"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_0_poll"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_sockets_0_2_0_network"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

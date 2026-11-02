@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
-	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
+	spinhttp "github.com/spinframework/spin-go-sdk/v4/http"
 )
 
 func init() {

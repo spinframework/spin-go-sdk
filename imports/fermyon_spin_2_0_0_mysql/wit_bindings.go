@@ -74,7 +74,7 @@
 package fermyon_spin_2_0_0_mysql
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/fermyon_spin_2_0_0_rdbms_types"
+	"github.com/spinframework/spin-go-sdk/v4/imports/fermyon_spin_2_0_0_rdbms_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

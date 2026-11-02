@@ -74,7 +74,7 @@
 package wasi_cli_0_2_6_stderr
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_streams"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_streams"
 )
 
 type OutputStream = wasi_io_0_2_6_streams.OutputStream

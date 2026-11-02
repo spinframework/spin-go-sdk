@@ -9,8 +9,8 @@ import (
 	"io"
 	"reflect"
 
-	mysql "github.com/spinframework/spin-go-sdk/v3/imports/spin_mysql_3_0_0_mysql"
-	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	mysql "github.com/spinframework/spin-go-sdk/v4/imports/spin_mysql_3_0_0_mysql"
+	spindb "github.com/spinframework/spin-go-sdk/v4/internal/db"
 	wittypes "go.bytecodealliance.org/pkg/wit/types"
 )
 

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"io"
 
-	sqlite "github.com/spinframework/spin-go-sdk/v3/imports/spin_sqlite_3_1_0_sqlite"
-	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	sqlite "github.com/spinframework/spin-go-sdk/v4/imports/spin_sqlite_3_1_0_sqlite"
+	spindb "github.com/spinframework/spin-go-sdk/v4/internal/db"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

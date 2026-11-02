@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
-	"github.com/spinframework/spin-go-sdk/v3/mqtt"
+	spinhttp "github.com/spinframework/spin-go-sdk/v4/http"
+	"github.com/spinframework/spin-go-sdk/v4/mqtt"
 )
 
 func main() {}

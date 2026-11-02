@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	handler "github.com/spinframework/spin-go-sdk/v3/exports/wasi_http_service_0_3_0/export_wasi_http_0_3_0_handler"
-	_ "github.com/spinframework/spin-go-sdk/v3/exports/wasi_http_service_0_3_0/wit_exports"
-	wasi "github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_3_0_types"
+	handler "github.com/spinframework/spin-go-sdk/v4/exports/wasi_http_service_0_3_0/export_wasi_http_0_3_0_handler"
+	_ "github.com/spinframework/spin-go-sdk/v4/exports/wasi_http_service_0_3_0/wit_exports"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

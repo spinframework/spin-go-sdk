@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	pg "github.com/spinframework/spin-go-sdk/v3/imports/spin_postgres_4_2_0_postgres"
+	pg "github.com/spinframework/spin-go-sdk/v4/imports/spin_postgres_4_2_0_postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	wittypes "go.bytecodealliance.org/pkg/wit/types"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"iter"
 
-	keyvalue "github.com/spinframework/spin-go-sdk/v3/imports/spin_key_value_3_0_0_key_value"
+	keyvalue "github.com/spinframework/spin-go-sdk/v4/imports/spin_key_value_3_0_0_key_value"
 )
 
 // Store represents a connection to a key-value store.
