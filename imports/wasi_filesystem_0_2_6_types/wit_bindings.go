@@ -74,9 +74,9 @@
 package wasi_filesystem_0_2_6_types
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_clocks_0_2_6_wall_clock"
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_error"
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_streams"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_clocks_0_2_6_wall_clock"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_error"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_streams"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

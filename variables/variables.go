@@ -4,7 +4,7 @@ package variables
 import (
 	"errors"
 
-	variables "github.com/spinframework/spin-go-sdk/v3/imports/spin_variables_3_0_0_variables"
+	variables "github.com/spinframework/spin-go-sdk/v4/imports/spin_variables_3_0_0_variables"
 )
 
 // Get returns an application variable value for the current component.

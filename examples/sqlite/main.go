@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
-	"github.com/spinframework/spin-go-sdk/v3/sqlite"
+	spinhttp "github.com/spinframework/spin-go-sdk/v4/http"
+	"github.com/spinframework/spin-go-sdk/v4/sqlite"
 )
 
 type Pet struct {

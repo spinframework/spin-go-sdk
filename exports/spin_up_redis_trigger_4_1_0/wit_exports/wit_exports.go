@@ -73,8 +73,8 @@
 package wit_exports
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/exports/spin_up_redis_trigger_4_1_0/export_spin_redis_3_0_0_inbound_redis"
-	"github.com/spinframework/spin-go-sdk/v3/imports/spin_redis_3_0_0_redis"
+	"github.com/spinframework/spin-go-sdk/v4/exports/spin_up_redis_trigger_4_1_0/export_spin_redis_3_0_0_inbound_redis"
+	"github.com/spinframework/spin-go-sdk/v4/imports/spin_redis_3_0_0_redis"
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"

@@ -74,7 +74,7 @@
 package wasi_clocks_0_2_6_monotonic_clock
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_poll"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_poll"
 )
 
 type Pollable = wasi_io_0_2_6_poll.Pollable

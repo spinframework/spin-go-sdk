@@ -74,7 +74,7 @@
 package wasi_keyvalue_0_2_0_draft2_atomics
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_keyvalue_0_2_0_draft2_store"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_keyvalue_0_2_0_draft2_store"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

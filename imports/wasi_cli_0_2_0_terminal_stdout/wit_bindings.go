@@ -74,7 +74,7 @@
 package wasi_cli_0_2_0_terminal_stdout
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_cli_0_2_0_terminal_output"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_cli_0_2_0_terminal_output"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

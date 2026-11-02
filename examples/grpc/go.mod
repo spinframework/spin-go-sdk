@@ -1,9 +1,9 @@
-module github.com/spinframework/spin-go-sdk/v3/examples/grpc
+module github.com/spinframework/spin-go-sdk/v4/examples/grpc
 
 go 1.27.1
 
 require (
-	github.com/spinframework/spin-go-sdk/v3 v3.0.0
+	github.com/spinframework/spin-go-sdk/v4 v4.0.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.11
 )
@@ -19,6 +19,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 )
 
-replace github.com/spinframework/spin-go-sdk/v3 => ../../
+replace github.com/spinframework/spin-go-sdk/v4 => ../../
 
 tool github.com/bytecodealliance/componentize-go

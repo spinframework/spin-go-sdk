@@ -1,4 +1,4 @@
-module github.com/spinframework/spin-go-sdk/v3
+module github.com/spinframework/spin-go-sdk/v4
 
 go 1.27.1
 

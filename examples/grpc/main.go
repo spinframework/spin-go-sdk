@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/proto"
 
-	pb "github.com/spinframework/spin-go-sdk/v3/examples/grpc/routeguide"
+	pb "github.com/spinframework/spin-go-sdk/v4/examples/grpc/routeguide"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
+	spinhttp "github.com/spinframework/spin-go-sdk/v4/http"
 )
 
 func init() {

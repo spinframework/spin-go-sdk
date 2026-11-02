@@ -74,7 +74,7 @@
 package wasi_sockets_0_3_0_rc_2026_03_15_ip_name_lookup
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_sockets_0_3_0_rc_2026_03_15_types"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_sockets_0_3_0_rc_2026_03_15_types"
 	witAsync "go.bytecodealliance.org/pkg/wit/async"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"

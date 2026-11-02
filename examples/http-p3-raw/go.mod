@@ -1,9 +1,9 @@
-module github.com/spinframework/spin-go-sdk/v3/examples/http
+module github.com/spinframework/spin-go-sdk/v4/examples/http
 
 go 1.27.1
 
 require (
-	github.com/spinframework/spin-go-sdk/v3 v3.0.0
+	github.com/spinframework/spin-go-sdk/v4 v4.0.0
 	go.bytecodealliance.org/pkg v0.4.1
 )
 
@@ -14,6 +14,6 @@ require (
 	golang.org/x/sys v0.37.0 // indirect
 )
 
-replace github.com/spinframework/spin-go-sdk/v3 => ../../
+replace github.com/spinframework/spin-go-sdk/v4 => ../../
 
 tool github.com/bytecodealliance/componentize-go

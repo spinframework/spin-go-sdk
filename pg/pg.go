@@ -11,8 +11,8 @@ import (
 	"reflect"
 	"time"
 
-	pg "github.com/spinframework/spin-go-sdk/v3/imports/spin_postgres_4_2_0_postgres"
-	spindb "github.com/spinframework/spin-go-sdk/v3/internal/db"
+	pg "github.com/spinframework/spin-go-sdk/v4/imports/spin_postgres_4_2_0_postgres"
+	spindb "github.com/spinframework/spin-go-sdk/v4/internal/db"
 	wittypes "go.bytecodealliance.org/pkg/wit/types"
 )
 

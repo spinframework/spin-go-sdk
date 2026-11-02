@@ -74,8 +74,8 @@
 package wasi_io_0_2_6_streams
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_error"
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_io_0_2_6_poll"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_error"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_io_0_2_6_poll"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

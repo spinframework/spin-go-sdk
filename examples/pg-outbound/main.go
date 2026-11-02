@@ -8,8 +8,8 @@ import (
 	"slices"
 	"time"
 
-	spinhttp "github.com/spinframework/spin-go-sdk/v3/http"
-	"github.com/spinframework/spin-go-sdk/v3/pg"
+	spinhttp "github.com/spinframework/spin-go-sdk/v4/http"
+	"github.com/spinframework/spin-go-sdk/v4/pg"
 )
 
 type Pet struct {

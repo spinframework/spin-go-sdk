@@ -74,7 +74,7 @@
 package wasi_filesystem_0_2_6_preopens
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_filesystem_0_2_6_types"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_filesystem_0_2_6_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

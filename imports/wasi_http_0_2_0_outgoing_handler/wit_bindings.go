@@ -74,7 +74,7 @@
 package wasi_http_0_2_0_outgoing_handler
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_http_0_2_0_types"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_2_0_types"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

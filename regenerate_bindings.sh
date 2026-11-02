@@ -15,7 +15,7 @@ go tool componentize-go \
   bindings \
   --format \
   -o . \
-  --pkg-name github.com/spinframework/spin-go-sdk/v3 \
+  --pkg-name github.com/spinframework/spin-go-sdk/v4 \
   --include-versions
 
 rm -r exports/wit_exports
@@ -37,9 +37,9 @@ for world in \
     bindings \
     --format \
     -o tmp \
-    --pkg-name github.com/spinframework/spin-go-sdk/v3 \
+    --pkg-name github.com/spinframework/spin-go-sdk/v4 \
     --include-versions
-  sed -e "s^github.com/spinframework/spin-go-sdk/v3/exports^github.com/spinframework/spin-go-sdk/v3/$dir^" \
+  sed -e "s^github.com/spinframework/spin-go-sdk/v4/exports^github.com/spinframework/spin-go-sdk/v4/$dir^" \
     tmp/exports/wit_exports/wit_exports.go >tmp/exports/wit_exports/wit_exports.go.new
   mv tmp/exports/wit_exports/wit_exports.go.new tmp/exports/wit_exports/wit_exports.go
   cp -r tmp/exports/wit_exports $dir/

@@ -74,7 +74,7 @@
 package wasi_cli_0_3_0_rc_2026_03_15_terminal_stderr
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_cli_0_3_0_rc_2026_03_15_terminal_output"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_cli_0_3_0_rc_2026_03_15_terminal_output"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"

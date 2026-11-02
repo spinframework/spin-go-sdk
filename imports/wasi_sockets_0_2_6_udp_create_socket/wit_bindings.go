@@ -74,8 +74,8 @@
 package wasi_sockets_0_2_6_udp_create_socket
 
 import (
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_sockets_0_2_6_network"
-	"github.com/spinframework/spin-go-sdk/v3/imports/wasi_sockets_0_2_6_udp"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_sockets_0_2_6_network"
+	"github.com/spinframework/spin-go-sdk/v4/imports/wasi_sockets_0_2_6_udp"
 	witRuntime "go.bytecodealliance.org/pkg/wit/runtime"
 	witTypes "go.bytecodealliance.org/pkg/wit/types"
 	"runtime"
