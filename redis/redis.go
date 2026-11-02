@@ -216,17 +216,17 @@ func createParameter(x any) (redis.RedisParameter, error) {
 
 func toResult(param redis.RedisResult) *Result {
 	switch param.Tag() {
-	case redis.RedisResultStatus:
+	case redis.RedisResult_Status:
 		return &Result{
 			Kind: ResultKindStatus,
 			Val:  param.Status(),
 		}
-	case redis.RedisResultInt64:
+	case redis.RedisResult_Int64:
 		return &Result{
 			Kind: ResultKindInt64,
 			Val:  param.Int64(),
 		}
-	case redis.RedisResultBinary:
+	case redis.RedisResult_Binary:
 		return &Result{
 			Kind: ResultKindBinary,
 			Val:  param.Binary(),
@@ -241,13 +241,13 @@ func toResult(param redis.RedisResult) *Result {
 
 func toError(e redis.Error) error {
 	switch e.Tag() {
-	case redis.ErrorInvalidAddress:
+	case redis.Error_InvalidAddress:
 		return errors.New("redis: invalid address")
-	case redis.ErrorTooManyConnections:
+	case redis.Error_TooManyConnections:
 		return errors.New("redis: too many connections")
-	case redis.ErrorTypeError:
+	case redis.Error_TypeError:
 		return errors.New("redis: type error")
-	case redis.ErrorOther:
+	case redis.Error_Other:
 		return fmt.Errorf("redis: %s", e.Other())
 	default:
 		return fmt.Errorf("redis: unknown error %v", e)

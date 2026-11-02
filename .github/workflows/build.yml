@@ -21,8 +21,7 @@ jobs:
       - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
         with:
-          # TODO: Switch to Spin 4.0 when it's available
-          version: "canary"
+          version: "v4.2.6"
 
       - name: Run unit tests
         run: go test -v -count=1 ./pg

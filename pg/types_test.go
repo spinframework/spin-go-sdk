@@ -249,8 +249,8 @@ func TestInt32Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKindInclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKind_Inclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKind_Inclusive}),
 		},
 		want: Int32Range{Lower: ptr(int32(1)), LowerInclusive: true, Upper: ptr(int32(10)), UpperInclusive: true},
 	}, {
@@ -259,8 +259,8 @@ func TestInt32Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 0, F1: pg.RangeBoundKindExclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKindExclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 0, F1: pg.RangeBoundKind_Exclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKind_Exclusive}),
 		},
 		want: Int32Range{Lower: ptr(int32(0)), LowerInclusive: false, Upper: ptr(int32(5)), UpperInclusive: false},
 	}, {
@@ -270,7 +270,7 @@ func TestInt32Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 		]{
 			F0: wittypes.None[wittypes.Tuple2[int32, pg.RangeBoundKind]](),
-			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 100, F1: pg.RangeBoundKindExclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 100, F1: pg.RangeBoundKind_Exclusive}),
 		},
 		want: Int32Range{Lower: nil, LowerInclusive: false, Upper: ptr(int32(100)), UpperInclusive: false},
 	}, {
@@ -279,7 +279,7 @@ func TestInt32Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKind_Inclusive}),
 			F1: wittypes.None[wittypes.Tuple2[int32, pg.RangeBoundKind]](),
 		},
 		want: Int32Range{Lower: ptr(int32(5)), LowerInclusive: true, Upper: nil, UpperInclusive: false},
@@ -319,8 +319,8 @@ func TestInt32Range_Value(t *testing.T) {
 				wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 				wittypes.Option[wittypes.Tuple2[int32, pg.RangeBoundKind]],
 			]{
-				F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKindInclusive}),
-				F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKindInclusive}),
+				F0: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKind_Inclusive}),
+				F1: wittypes.Some(wittypes.Tuple2[int32, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKind_Inclusive}),
 			},
 		},
 		{
@@ -369,8 +369,8 @@ func TestInt64Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKindInclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKind_Inclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKind_Inclusive}),
 		},
 		want: Int64Range{Lower: ptr(int64(1)), LowerInclusive: true, Upper: ptr(int64(10)), UpperInclusive: true},
 	}, {
@@ -379,8 +379,8 @@ func TestInt64Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 0, F1: pg.RangeBoundKindExclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKindExclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 0, F1: pg.RangeBoundKind_Exclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKind_Exclusive}),
 		},
 		want: Int64Range{Lower: ptr(int64(0)), LowerInclusive: false, Upper: ptr(int64(5)), UpperInclusive: false},
 	}, {
@@ -390,7 +390,7 @@ func TestInt64Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 		]{
 			F0: wittypes.None[wittypes.Tuple2[int64, pg.RangeBoundKind]](),
-			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 100, F1: pg.RangeBoundKindExclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 100, F1: pg.RangeBoundKind_Exclusive}),
 		},
 		want: Int64Range{Lower: nil, LowerInclusive: false, Upper: ptr(int64(100)), UpperInclusive: false},
 	}, {
@@ -399,7 +399,7 @@ func TestInt64Range_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 5, F1: pg.RangeBoundKind_Inclusive}),
 			F1: wittypes.None[wittypes.Tuple2[int64, pg.RangeBoundKind]](),
 		},
 		want: Int64Range{Lower: ptr(int64(5)), LowerInclusive: true, Upper: nil, UpperInclusive: false},
@@ -438,8 +438,8 @@ func TestInt64Range_Value(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[int64, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKindInclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 1, F1: pg.RangeBoundKind_Inclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[int64, pg.RangeBoundKind]{F0: 10, F1: pg.RangeBoundKind_Inclusive}),
 		},
 	}, {
 		name:  "unbounded both",
@@ -530,8 +530,8 @@ func TestDecimalRange_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "1.5", F1: pg.RangeBoundKindInclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "9.99", F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "1.5", F1: pg.RangeBoundKind_Inclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "9.99", F1: pg.RangeBoundKind_Inclusive}),
 		},
 		want: DecimalRange{Lower: ptr(Decimal("1.5")), LowerInclusive: true, Upper: ptr(Decimal("9.99")), UpperInclusive: true},
 	}, {
@@ -541,7 +541,7 @@ func TestDecimalRange_Scan(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]],
 		]{
 			F0: wittypes.None[wittypes.Tuple2[string, pg.RangeBoundKind]](),
-			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "100.00", F1: pg.RangeBoundKindExclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "100.00", F1: pg.RangeBoundKind_Exclusive}),
 		},
 		want: DecimalRange{Lower: nil, Upper: ptr(Decimal("100.00")), UpperInclusive: false},
 	}, {
@@ -579,8 +579,8 @@ func TestDecimalRange_Value(t *testing.T) {
 			wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]],
 			wittypes.Option[wittypes.Tuple2[string, pg.RangeBoundKind]],
 		]{
-			F0: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "1.5", F1: pg.RangeBoundKindInclusive}),
-			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "9.99", F1: pg.RangeBoundKindInclusive}),
+			F0: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "1.5", F1: pg.RangeBoundKind_Inclusive}),
+			F1: wittypes.Some(wittypes.Tuple2[string, pg.RangeBoundKind]{F0: "9.99", F1: pg.RangeBoundKind_Inclusive}),
 		},
 	}, {
 		name:  "unbounded both",
