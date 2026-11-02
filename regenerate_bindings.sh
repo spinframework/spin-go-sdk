@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Remove any previously-generated import bindings:
 rm -r imports
@@ -38,8 +39,9 @@ for world in \
     -o tmp \
     --pkg-name github.com/spinframework/spin-go-sdk/v3 \
     --include-versions
-  sed -i -e "s^github.com/spinframework/spin-go-sdk/v3/exports^github.com/spinframework/spin-go-sdk/v3/$dir^" \
-    tmp/exports/wit_exports/wit_exports.go
+  sed -e "s^github.com/spinframework/spin-go-sdk/v3/exports^github.com/spinframework/spin-go-sdk/v3/$dir^" \
+    tmp/exports/wit_exports/wit_exports.go >tmp/exports/wit_exports/wit_exports.go.new
+  mv tmp/exports/wit_exports/wit_exports.go.new tmp/exports/wit_exports/wit_exports.go
   cp -r tmp/exports/wit_exports $dir/
   rm -rf tmp
 done
