@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"slices"
 
-	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
@@ -55,6 +55,12 @@ func (self *responseWriter) Flush() {
 func (self *responseWriter) writeTrailers() {
 	if self.trailersTx == nil {
 		return
+	}
+
+	// End the body first: a guest reader (e.g. middleware) only awaits trailers after EOF.
+	if self.stream != nil {
+		self.stream.Drop()
+		self.stream = nil
 	}
 
 	declared := self.headers.Values("Trailer")

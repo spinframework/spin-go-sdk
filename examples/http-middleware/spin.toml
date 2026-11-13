@@ -1,0 +1,23 @@
+spin_manifest_version = 2
+
+[application]
+description = "A Spin application written in Go that uses HTTP middleware."
+name = "http-middleware-example"
+version = "1.0.0"
+
+[[trigger.http]]
+route = "/..."
+component = "app"
+dependencies.middleware = [{ component = "middleware" }]
+
+[component.app]
+source = "app/main.wasm"
+[component.app.build]
+workdir = "app"
+command = "go tool componentize-go build"
+
+[component.middleware]
+source = "middleware/main.wasm"
+[component.middleware.build]
+workdir = "middleware"
+command = "go tool componentize-go -w spin:up/http-middleware@4.1.0 build"
