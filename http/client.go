@@ -5,8 +5,10 @@ import (
 	"io"
 	"net/http"
 
-	client "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_client"
-	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
+	client "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_client"
+	next "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_handler"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_types"
+	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
 // NewTransport returns an [http.RoundTripper] backed by the Spin SDK.
@@ -37,9 +39,28 @@ func Send(req *http.Request) (*http.Response, error) {
 	}
 	defer request.Drop()
 
-	result := client.Send(request)
+	return toHttpResponse(client.Send(request), "error sending request")
+}
+
+// Next forwards an HTTP request to the next handler in the middleware chain
+// and returns its response.
+//
+// Components calling Next must be built against the
+// `spin:up/http-middleware@4.1.0` world, e.g.
+// `go tool componentize-go -w spin:up/http-middleware@4.1.0 build`.
+func Next(req *http.Request) (*http.Response, error) {
+	request, err := newOutgoingHttpRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	defer request.Drop()
+
+	return toHttpResponse(next.Handle(request), "error forwarding request to next handler")
+}
+
+func toHttpResponse(result wit.Result[*wasi.Response, wasi.ErrorCode], errContext string) (*http.Response, error) {
 	if result.IsErr() {
-		return nil, fmt.Errorf("error sending request: %s", errorString(result.Err()))
+		return nil, fmt.Errorf("%s: %s", errContext, errorString(result.Err()))
 	}
 
 	response := result.Ok()

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
@@ -28,6 +28,8 @@ func newHttpRequest(ir *wasi.Request) (*http.Request, error) {
 	headers := headerResource.CopyAll()
 	headerResource.Drop()
 
+	authority := ir.GetAuthority()
+
 	rx, trailers := wasi.RequestConsumeBody(ir, unitFuture())
 	body := newReader(rx, trailers)
 
@@ -38,6 +40,10 @@ func newHttpRequest(ir *wasi.Request) (*http.Request, error) {
 	}
 
 	toHttpHeader(headers, &req.Header)
+
+	if authority.IsSome() {
+		req.Host = authority.Some()
+	}
 
 	return req, nil
 }
