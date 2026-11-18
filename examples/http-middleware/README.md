@@ -1,6 +1,6 @@
 # Requirements
 - [**go**](https://go.dev/dl/) - v1.25+
-- [**spin**](https://github.com/spinframework/spin) - Latest version
+- [**spin**](https://github.com/spinframework/spin) - v4.3.0+
 
 # Usage
 The `middleware` component is built against the `spin:up/http-middleware@4.1.0`
