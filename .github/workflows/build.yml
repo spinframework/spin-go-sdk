@@ -21,7 +21,7 @@ jobs:
       - name: Install Spin
         uses: fermyon/actions/spin/setup@v1
         with:
-          version: "v4.2.6"
+          version: "v4.3.0"
 
       - name: Run unit tests
         run: go test -v -count=1 ./pg

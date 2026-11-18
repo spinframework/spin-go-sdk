@@ -9,8 +9,9 @@ rm -r imports
 go tool componentize-go \
   --ignore-toml-files \
   -w "spin:up/http-trigger@4.1.0" \
+  -w "spin:up/http-middleware@4.1.0" \
   -w "spin:up/redis-trigger@4.1.0" \
-  -w "wasi:http/service@0.3.0" \
+  -w "wasi:http/service@0.3.2" \
   -d wit \
   bindings \
   --format \
@@ -26,7 +27,7 @@ rm -r exports/wit_exports
 for world in \
   "spin:up/http-trigger@4.1.0" \
   "spin:up/redis-trigger@4.1.0" \
-  "wasi:http/service@0.3.0"; do
+  "wasi:http/service@0.3.2"; do
   rm -rf tmp
   dir=exports/$(echo $world | sed 's+[:/@.-]+_+g')
   rm -rf $dir/exports

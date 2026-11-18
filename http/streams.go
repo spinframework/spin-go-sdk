@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 

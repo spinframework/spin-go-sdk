@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_0_types"
+	wasi "github.com/spinframework/spin-go-sdk/v4/imports/wasi_http_0_3_2_types"
 	wit "go.bytecodealliance.org/pkg/wit/types"
 )
 
@@ -49,10 +49,19 @@ func newOutgoingHttpRequest(req *http.Request) (*wasi.Request, error) {
 	)
 	send.Drop()
 	request.SetMethod(toWasiMethod(req.Method))
-	request.SetAuthority(wit.Some(req.Host))
-	request.SetPathWithQuery(wit.Some(req.URL.Path))
+	request.SetPathWithQuery(wit.Some(req.URL.RequestURI()))
+
+	authority := req.Host
+	if authority == "" {
+		authority = req.URL.Host
+	}
+	if authority != "" {
+		request.SetAuthority(wit.Some(authority))
+	}
 
 	switch req.URL.Scheme {
+	case "":
+		// Leave unset so the receiver picks a default, e.g. when forwarding an incoming request.
 	case "http":
 		request.SetScheme(wit.Some(wasi.MakeSchemeHttp()))
 	case "https":
