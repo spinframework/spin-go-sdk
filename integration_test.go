@@ -115,6 +115,35 @@ func TestHTTPp3RawTrigger(t *testing.T) {
 	}
 }
 
+func TestHTTPMiddleware(t *testing.T) {
+	spin := startSpin(t, "examples/http-middleware")
+	defer spin.cancel()
+
+	resp := retryGet(t, spin.url+"/hello?name=go")
+	spin.cancel()
+	if resp.Body == nil {
+		t.Fatal("body is nil")
+	}
+	t.Log(resp.Status)
+	b, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert response body
+	want := "Hello from app! x-middleware=\"hello from middleware\" path=/hello?name=go\n"
+	got := string(b)
+	if want != got {
+		t.Fatalf("body is not equal: want = %q got = %q", want, got)
+	}
+
+	// assert response header
+	if resp.Header.Get("x-middleware-seen") != "true" {
+		t.Fatal("header 'x-middleware-seen' was not set")
+	}
+}
+
 func TestHTTPTrigger(t *testing.T) {
 	spin := startSpin(t, "testdata/http")
 	defer spin.cancel()
